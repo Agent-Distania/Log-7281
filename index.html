@@ -27,7 +27,7 @@
 <body>
   <div id="password-screen">
     <h2>Enter Access Code</h2>
-    <input type="password" id="access-code" placeholder="Access Code" />
+    <input type="password" id="access-code" placeholder="Access Code" autocomplete="off" />
     <button id="access-button">Enter</button>
     <p id="error-message">Incorrect code.</p>
   </div>
@@ -49,9 +49,9 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-    // Your Firebase config here:
+    // Replace these with your Firebase project config:
     const firebaseConfig = {
- apiKey: "AIzaSyCEnayZ7B7VYH_55IKjdRGriey5ffdPqRA",
+      apiKey: "AIzaSyCEnayZ7B7VYH_55IKjdRGriey5ffdPqRA",
   authDomain: "log-7281.firebaseapp.com",
   databaseURL: "https://log-7281-default-rtdb.firebaseio.com",
   projectId: "log-7281",
@@ -64,28 +64,27 @@
     const db = getDatabase(app);
     const messagesRef = ref(db, 'messages');
 
-    const chatForm = document.getElementById("chat-form");
-    const chatBox = document.getElementById("chat-box");
     const passwordScreen = document.getElementById("password-screen");
     const accessButton = document.getElementById("access-button");
     const errorMessage = document.getElementById("error-message");
+    const chatForm = document.getElementById("chat-form");
+    const chatBox = document.getElementById("chat-box");
 
-    // Display existing messages live:
+    // Load and display messages live for everyone
     onChildAdded(messagesRef, (data) => {
       const val = data.val();
       const div = document.createElement("div");
       div.textContent = `[${val.character}] ${val.message}`;
       chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight; // Scroll down
     });
 
-    // Password check to show chat input form
     accessButton.addEventListener("click", () => {
       const code = document.getElementById("access-code").value;
       if (code === "7281") {
         passwordScreen.style.display = "none";
         chatForm.style.display = "block";
 
-        // Only allow message sending if password correct
         chatForm.addEventListener("submit", (e) => {
           e.preventDefault();
           const character = document.getElementById("character").value;
@@ -94,8 +93,9 @@
           push(messagesRef, {
             character,
             message,
-            timestamp: Date.now(2:58)
+            timestamp: Date.now()
           });
+
           chatForm.reset();
         });
       } else {
