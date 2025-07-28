@@ -63,33 +63,35 @@
 
     let guestNumber = localStorage.getItem("guestNumber");
 
-    function assignGuestNumber() {
+    async function assignGuestNumber() {
       const guestCounterRef = ref(db, "guestCounter");
-
-      return runTransaction(guestCounterRef, (current) => {
-        return (current || 0) + 1;
-      }).then((result) => {
+      try {
+        const result = await runTransaction(guestCounterRef, (current) => {
+          return (current || 0) + 1;
+        });
         guestNumber = "Guest " + result.snapshot.val();
         localStorage.setItem("guestNumber", guestNumber);
-        sendButton.disabled = false;
-      }).catch((error) => {
+      } catch (error) {
         console.error("Error assigning guest number:", error);
-      });
+      }
     }
 
-    if (!guestNumber) {
-      sendButton.disabled = true;
-      assignGuestNumber();
-    } else {
+    async function initGuest() {
+      if (!guestNumber) {
+        sendButton.disabled = true;
+        await assignGuestNumber();
+      }
       sendButton.disabled = false;
     }
+
+    initGuest();
 
     function formatTimestamp(timestamp) {
       const date = new Date(timestamp);
       const hours = date.getHours();
       const minutes = date.getMinutes().toString().padStart(2, '0');
       const ampm = hours >= 12 ? 'PM' : 'AM';
-      const formattedHours = ((hours + 11) % 12 + 1); // convert to 12-hour format
+      const formattedHours = ((hours + 11) % 12 + 1);
       return `${formattedHours}:${minutes} ${ampm}`;
     }
 
