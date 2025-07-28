@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Underground</title>
   <style>
     body {
@@ -23,36 +23,25 @@
       display: flex;
       gap: 10px;
     }
-    #chat-form input,
-    #chat-form button {
+    #chat-form input, #chat-form button {
       font-family: monospace;
-    }
-    #error-msg {
-      color: red;
-      margin-bottom: 10px;
-      font-weight: bold;
     }
   </style>
 </head>
 <body>
   <h1>Underground</h1>
 
-  <div id="error-msg" aria-live="polite"></div>
+  <button id="change-username" style="margin-bottom: 10px;">Change Username</button>
   <div id="chat-box"></div>
 
-  <form id="chat-form" style="display:none;">
-    <input type="text" id="message" placeholder="Enter message" required autocomplete="off" />
+  <form id="chat-form">
+    <input type="text" id="message" placeholder="Enter message" required />
     <button type="submit" disabled>Send</button>
   </form>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import {
-      getDatabase,
-      ref,
-      push,
-      onChildAdded,
-    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCEnayZ7B7VYH_55IKjdRGriey5ffdPqRA",
@@ -61,49 +50,34 @@
       projectId: "log-7281",
       storageBucket: "log-7281.appspot.com",
       messagingSenderId: "997557129411",
-      appId: "1:997557129411:web:ef247b0fff165df2ef9276",
+      appId: "1:997557129411:web:ef247b0fff165df2ef9276"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    const messagesRef = ref(db, "messages");
+    const messagesRef = ref(db, 'messages');
 
     const chatForm = document.getElementById("chat-form");
     const chatBox = document.getElementById("chat-box");
     const messageInput = document.getElementById("message");
     const sendButton = chatForm.querySelector("button");
-    const errorMsg = document.getElementById("error-msg");
+    const changeUsernameBtn = document.getElementById("change-username");
 
     let username = localStorage.getItem("username");
 
-    async function promptUsername() {
-      while (true) {
-        const inputName = prompt("Enter your username to join the chat:");
-        if (inputName && inputName.trim() !== "") {
-          username = inputName.trim();
-          localStorage.setItem("username", username);
-          sendButton.disabled = false;
-          chatForm.style.display = "flex";
-          errorMsg.textContent = "";
-          break;
-        }
-        alert("Username cannot be empty. Please enter a username.");
-      }
-    }
-
     if (!username) {
-      promptUsername();
-    } else {
-      sendButton.disabled = false;
-      chatForm.style.display = "flex";
+      username = prompt("Enter your username:").trim();
+      if (!username) username = "Anonymous";
+      localStorage.setItem("username", username);
     }
+    sendButton.disabled = false;
 
     function formatTimestamp(timestamp) {
       const date = new Date(timestamp);
       const hours = date.getHours();
-      const minutes = date.getMinutes().toString().padStart(2, "0");
-      const ampm = hours >= 12 ? "PM" : "AM";
-      const formattedHours = ((hours + 11) % 12) + 1;
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const formattedHours = ((hours + 11) % 12 + 1);
       return `${formattedHours}:${minutes} ${ampm}`;
     }
 
@@ -111,28 +85,33 @@
       const val = data.val();
       const div = document.createElement("div");
       const time = formatTimestamp(val.timestamp);
-      div.textContent = `[${time}] [${val.guest}] ${val.message}`;
+      div.textContent = `[${time}] [${val.username}] ${val.message}`;
       chatBox.appendChild(div);
       chatBox.scrollTop = chatBox.scrollHeight;
     });
 
     chatForm.addEventListener("submit", (e) => {
       e.preventDefault();
-      if (!username) return;
-
       const message = messageInput.value.trim();
       if (message === "") return;
 
       push(messagesRef, {
-        guest: username,
+        username,
         message,
-        timestamp: Date.now(),
-      }).catch((error) => {
-        errorMsg.textContent = "Error sending message: " + error.message;
-        console.error("Error sending message:", error);
+        timestamp: Date.now()
       });
 
       chatForm.reset();
+    });
+
+    changeUsernameBtn.addEventListener("click", () => {
+      const newUsername = prompt("Enter a new username:");
+      if (newUsername && newUsername.trim() !== "") {
+        localStorage.setItem("username", newUsername.trim());
+        location.reload();
+      } else {
+        alert("Username cannot be empty.");
+      }
     });
   </script>
 </body>
