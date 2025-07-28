@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Underground</title>
   <style>
     body {
@@ -23,24 +23,37 @@
       display: flex;
       gap: 10px;
     }
-    #chat-form input, #chat-form button {
+    #chat-form input,
+    #chat-form button {
       font-family: monospace;
+    }
+    #error-msg {
+      color: red;
+      margin-bottom: 10px;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
   <h1>Underground</h1>
 
+  <div id="error-msg" aria-live="polite"></div>
   <div id="chat-box"></div>
 
   <form id="chat-form">
-    <input type="text" id="message" placeholder="Enter message" required />
+    <input type="text" id="message" placeholder="Enter message" required autocomplete="off" />
     <button type="submit" disabled>Send</button>
   </form>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getDatabase, ref, push, onChildAdded, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    import {
+      getDatabase,
+      ref,
+      push,
+      onChildAdded,
+      runTransaction,
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCEnayZ7B7VYH_55IKjdRGriey5ffdPqRA",
@@ -49,19 +62,20 @@
       projectId: "log-7281",
       storageBucket: "log-7281.appspot.com",
       messagingSenderId: "997557129411",
-      appId: "1:997557129411:web:ef247b0fff165df2ef9276"
+      appId: "1:997557129411:web:ef247b0fff165df2ef9276",
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    const messagesRef = ref(db, 'messages');
+    const messagesRef = ref(db, "messages");
 
     const chatForm = document.getElementById("chat-form");
     const chatBox = document.getElementById("chat-box");
     const messageInput = document.getElementById("message");
     const sendButton = chatForm.querySelector("button");
+    const errorMsg = document.getElementById("error-msg");
 
-    let guestNumber = localStorage.getItem("guestNumber");
+    let username = localStorage.getItem("username");
 
     async function assignGuestNumber() {
       const guestCounterRef = ref(db, "guestCounter");
@@ -69,29 +83,54 @@
         const result = await runTransaction(guestCounterRef, (current) => {
           return (current || 0) + 1;
         });
-        guestNumber = "Guest " + result.snapshot.val();
-        localStorage.setItem("guestNumber", guestNumber);
+        if (result.committed) {
+          return "Guest " + result.snapshot.val();
+        } else {
+          throw new Error("Transaction not committed");
+        }
       } catch (error) {
+        errorMsg.textContent = "Error assigning guest number: " + error.message;
         console.error("Error assigning guest number:", error);
+        return null;
       }
     }
 
-    async function initGuest() {
-      if (!guestNumber) {
-        sendButton.disabled = true;
-        await assignGuestNumber();
+    async function initUser() {
+      if (!username) {
+        const inputName = prompt(
+          "Enter your username (or leave blank for a guest number):"
+        );
+        if (inputName && inputName.trim() !== "") {
+          username = inputName.trim();
+          localStorage.setItem("username", username);
+          sendButton.disabled = false;
+          errorMsg.textContent = "";
+        } else {
+          sendButton.disabled = true;
+          const guestName = await assignGuestNumber();
+          if (guestName) {
+            username = guestName;
+            localStorage.setItem("username", username);
+            sendButton.disabled = false;
+            errorMsg.textContent = "";
+          } else {
+            // guest number assignment failed, keep disabled
+            sendButton.disabled = true;
+          }
+        }
+      } else {
+        sendButton.disabled = false;
       }
-      sendButton.disabled = false;
     }
 
-    initGuest();
+    initUser();
 
     function formatTimestamp(timestamp) {
       const date = new Date(timestamp);
       const hours = date.getHours();
-      const minutes = date.getMinutes().toString().padStart(2, '0');
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      const formattedHours = ((hours + 11) % 12 + 1);
+      const minutes = date.getMinutes().toString().padStart(2, "0");
+      const ampm = hours >= 12 ? "PM" : "AM";
+      const formattedHours = ((hours + 11) % 12) + 1;
       return `${formattedHours}:${minutes} ${ampm}`;
     }
 
@@ -106,15 +145,18 @@
 
     chatForm.addEventListener("submit", (e) => {
       e.preventDefault();
-      if (!guestNumber) return;
+      if (!username) return;
 
       const message = messageInput.value.trim();
       if (message === "") return;
 
       push(messagesRef, {
-        guest: guestNumber,
+        guest: username,
         message,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+      }).catch((error) => {
+        errorMsg.textContent = "Error sending message: " + error.message;
+        console.error("Error sending message:", error);
       });
 
       chatForm.reset();
