@@ -37,6 +37,8 @@
   <form id="chat-form">
     <input type="text" id="message" placeholder="Enter message" required />
     <button type="submit" disabled>Send</button>
+    <input type="file" id="imageInput" accept="image/*" style="display: none;" />
+    <button type="button" id="sendImage">Send Image</button>
   </form>
 
   <script type="module">
@@ -62,6 +64,8 @@
     const messageInput = document.getElementById("message");
     const sendButton = chatForm.querySelector("button");
     const changeUsernameBtn = document.getElementById("change-username");
+    const imageInput = document.getElementById("imageInput");
+    const sendImageBtn = document.getElementById("sendImage");
 
     let username = localStorage.getItem("username");
 
@@ -85,7 +89,7 @@
       const val = data.val();
       const div = document.createElement("div");
       const time = formatTimestamp(val.timestamp);
-      div.textContent = `[${time}] [${val.username}] ${val.message}`;
+      div.innerHTML = `[${time}] [${val.username}] ${val.message}`;
       chatBox.appendChild(div);
       chatBox.scrollTop = chatBox.scrollHeight;
     });
@@ -112,6 +116,26 @@
       } else {
         alert("Username cannot be empty.");
       }
+    });
+
+    sendImageBtn.addEventListener("click", () => {
+      imageInput.click();
+    });
+
+    imageInput.addEventListener("change", async () => {
+      const file = imageInput.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const imageData = e.target.result;
+        push(messagesRef, {
+          username,
+          message: `<img src="${imageData}" style="max-width: 200px;" />`,
+          timestamp: Date.now()
+        });
+      };
+      reader.readAsDataURL(file);
     });
   </script>
 </body>
