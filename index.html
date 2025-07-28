@@ -35,7 +35,7 @@
 
   <form id="chat-form">
     <input type="text" id="message" placeholder="Enter message" required />
-    <button type="submit">Send</button>
+    <button type="submit" disabled>Send</button>
   </form>
 
   <script type="module">
@@ -59,46 +59,62 @@
     const chatForm = document.getElementById("chat-form");
     const chatBox = document.getElementById("chat-box");
     const messageInput = document.getElementById("message");
+    const sendButton = chatForm.querySelector("button");
 
     let guestNumber = localStorage.getItem("guestNumber");
 
     function assignGuestNumber() {
       const guestCounterRef = ref(db, "guestCounter");
 
-      runTransaction(guestCounterRef, (current) => {
+      return runTransaction(guestCounterRef, (current) => {
         return (current || 0) + 1;
       }).then((result) => {
         guestNumber = "Guest " + result.snapshot.val();
         localStorage.setItem("guestNumber", guestNumber);
+        sendButton.disabled = false;
       }).catch((error) => {
         console.error("Error assigning guest number:", error);
       });
     }
 
     if (!guestNumber) {
+      sendButton.disabled = true;
       assignGuestNumber();
+    } else {
+      sendButton.disabled = false;
+    }
+
+    function formatTimestamp(timestamp) {
+      const date = new Date(timestamp);
+      const hours = date.getHours();
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const formattedHours = ((hours + 11) % 12 + 1); // convert to 12-hour format
+      return `${formattedHours}:${minutes} ${ampm}`;
     }
 
     onChildAdded(messagesRef, (data) => {
       const val = data.val();
       const div = document.createElement("div");
-      div.textContent = `[${val.guest}] ${val.message}`;
+      const time = formatTimestamp(val.timestamp);
+      div.textContent = `[${time}] [${val.guest}] ${val.message}`;
       chatBox.appendChild(div);
       chatBox.scrollTop = chatBox.scrollHeight;
     });
 
     chatForm.addEventListener("submit", (e) => {
       e.preventDefault();
-      if (!guestNumber) {
-        assignGuestNumber();
-        return;
-      }
-      const message = messageInput.value;
+      if (!guestNumber) return;
+
+      const message = messageInput.value.trim();
+      if (message === "") return;
+
       push(messagesRef, {
         guest: guestNumber,
         message,
         timestamp: Date.now()
       });
+
       chatForm.reset();
     });
   </script>
