@@ -11,6 +11,7 @@
       font-family: monospace;
       padding: 20px;
       animation: crtFlicker 2s infinite;
+      position: relative;
     }
     #chat-box {
       border: 1px solid #0f0;
@@ -58,6 +59,7 @@
 
   <form id="chat-form">
     <input type="text" id="message" placeholder="Enter message" required />
+    <input type="file" id="image-input" accept="image/*">
     <button type="submit" disabled>Send</button>
   </form>
 
@@ -82,6 +84,7 @@
     const chatForm = document.getElementById("chat-form");
     const chatBox = document.getElementById("chat-box");
     const messageInput = document.getElementById("message");
+    const imageInput = document.getElementById("image-input");
     const sendButton = chatForm.querySelector("button");
     const changeUsernameBtn = document.getElementById("change-username");
 
@@ -107,7 +110,11 @@
       const val = data.val();
       const div = document.createElement("div");
       const time = formatTimestamp(val.timestamp);
-      div.textContent = `[${time}] [${val.username}] ${val.message}`;
+      if (val.image) {
+        div.innerHTML = `[${time}] [${val.username}]<br><img src="${val.image}" alt="image" style="max-width: 200px;">`;
+      } else {
+        div.textContent = `[${time}] [${val.username}] ${val.message}`;
+      }
       chatBox.appendChild(div);
       chatBox.scrollTop = chatBox.scrollHeight;
     });
@@ -115,13 +122,27 @@
     chatForm.addEventListener("submit", (e) => {
       e.preventDefault();
       const message = messageInput.value.trim();
-      if (message === "") return;
+      const file = imageInput.files[0];
 
-      push(messagesRef, {
-        username,
-        message,
-        timestamp: Date.now()
-      });
+      if (!message && !file) return;
+
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          push(messagesRef, {
+            username,
+            image: event.target.result,
+            timestamp: Date.now()
+          });
+        };
+        reader.readAsDataURL(file);
+      } else {
+        push(messagesRef, {
+          username,
+          message,
+          timestamp: Date.now()
+        });
+      }
 
       chatForm.reset();
     });
