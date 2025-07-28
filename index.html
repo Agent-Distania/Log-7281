@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LOG-7281-ARCHIVE</title>
+  <title>Underground</title>
   <style>
     body {
       background-color: #111;
@@ -29,7 +29,7 @@
   </style>
 </head>
 <body>
-  <h1>LOG-7281-ARCHIVE</h1>
+  <h1>Underground</h1>
 
   <div id="chat-box"></div>
 
@@ -62,7 +62,7 @@
 
     let guestNumber = localStorage.getItem("guestNumber");
 
-    if (!guestNumber) {
+    function assignGuestNumber() {
       const guestCounterRef = ref(db, "guestCounter");
 
       runTransaction(guestCounterRef, (current) => {
@@ -75,6 +75,10 @@
       });
     }
 
+    if (!guestNumber) {
+      assignGuestNumber();
+    }
+
     onChildAdded(messagesRef, (data) => {
       const val = data.val();
       const div = document.createElement("div");
@@ -85,6 +89,10 @@
 
     chatForm.addEventListener("submit", (e) => {
       e.preventDefault();
+      if (!guestNumber) {
+        assignGuestNumber();
+        return;
+      }
       const message = messageInput.value;
       push(messagesRef, {
         guest: guestNumber,
