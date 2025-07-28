@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LOG-7281-ARCHIVE</title>
   <link rel="stylesheet" href="style.css" />
   <style>
@@ -25,7 +26,7 @@
   <div id="password-screen">
     <h2>Enter Access Code</h2>
     <input type="password" id="access-code" placeholder="Access Code" />
-    <button onclick="verifyPassword()">Enter</button>
+    <button id="access-button">Enter</button>
     <p id="error-message" style="color: red; display: none;">Incorrect code.</p>
   </div>
 
@@ -42,8 +43,8 @@
     <button type="submit">Send</button>
   </form>
 
-  <script type="module">
-    function verifyPassword() {
+  <script>
+    document.getElementById("access-button").addEventListener("click", function () {
       const code = document.getElementById("access-code").value;
       const error = document.getElementById("error-message");
       if (code === "7281") {
@@ -52,12 +53,8 @@
       } else {
         error.style.display = "block";
       }
-    }
+    });
   </script>
-  <script type="module" src="script.js"></script>
-</body>
-</html>
-  </script>
-  <script type="module" src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
