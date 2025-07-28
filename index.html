@@ -10,7 +10,8 @@
 
   <div id="chat-box"></div>
 
-  <form id="chat-form">
+  <!-- Chat form only visible with ?admin in URL -->
+  <form id="chat-form" style="display: none;">
     <select id="character">
       <option value="Eventreur">Eventreur</option>
       <option value="Dr. Minerva">Dr. Minerva</option>
@@ -20,6 +21,12 @@
     <button type="submit">Send</button>
   </form>
 
+  <script type="module">
+    // Show chat form only if URL contains ?admin
+    if (location.search.includes("admin")) {
+      document.getElementById("chat-form").style.display = "block";
+    }
+  </script>
   <script type="module" src="script.js"></script>
 </body>
 </html>
