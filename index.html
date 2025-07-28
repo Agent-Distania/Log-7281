@@ -40,7 +40,7 @@
   <div id="error-msg" aria-live="polite"></div>
   <div id="chat-box"></div>
 
-  <form id="chat-form">
+  <form id="chat-form" style="display:none;">
     <input type="text" id="message" placeholder="Enter message" required autocomplete="off" />
     <button type="submit" disabled>Send</button>
   </form>
@@ -52,7 +52,6 @@
       ref,
       push,
       onChildAdded,
-      runTransaction,
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
     const firebaseConfig = {
@@ -77,52 +76,27 @@
 
     let username = localStorage.getItem("username");
 
-    async function assignGuestNumber() {
-      const guestCounterRef = ref(db, "guestCounter");
-      try {
-        const result = await runTransaction(guestCounterRef, (current) => {
-          return (current || 0) + 1;
-        });
-        if (result.committed) {
-          return "Guest " + result.snapshot.val();
-        } else {
-          throw new Error("Transaction not committed");
-        }
-      } catch (error) {
-        errorMsg.textContent = "Error assigning guest number: " + error.message;
-        console.error("Error assigning guest number:", error);
-        return null;
-      }
-    }
-
-    async function initUser() {
-      if (!username) {
-        const inputName = prompt(
-          "Enter your username (or leave blank for a guest number):"
-        );
+    async function promptUsername() {
+      while (true) {
+        const inputName = prompt("Enter your username to join the chat:");
         if (inputName && inputName.trim() !== "") {
           username = inputName.trim();
           localStorage.setItem("username", username);
           sendButton.disabled = false;
+          chatForm.style.display = "flex";
           errorMsg.textContent = "";
-        } else {
-          sendButton.disabled = true;
-          const guestName = await assignGuestNumber();
-          if (guestName) {
-            username = guestName;
-            localStorage.setItem("username", username);
-            sendButton.disabled = false;
-            errorMsg.textContent = "";
-          } else {
-            sendButton.disabled = true;
-          }
+          break;
         }
-      } else {
-        sendButton.disabled = false;
+        alert("Username cannot be empty. Please enter a username.");
       }
     }
 
-    initUser();
+    if (!username) {
+      promptUsername();
+    } else {
+      sendButton.disabled = false;
+      chatForm.style.display = "flex";
+    }
 
     function formatTimestamp(timestamp) {
       const date = new Date(timestamp);
