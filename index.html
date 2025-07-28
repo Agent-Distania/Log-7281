@@ -2,15 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>LOG-7281-ARCHIVE</title>
   <link rel="stylesheet" href="style.css" />
   <style>
     #password-screen {
       position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background-color: #000;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: #000;
       color: #fff;
       display: flex;
       flex-direction: column;
@@ -20,8 +19,8 @@
     }
     #error-message {
       color: red;
-      display: none;
       margin-top: 10px;
+      display: none;
     }
   </style>
 </head>
@@ -34,10 +33,9 @@
   </div>
 
   <h1>LOG-7281-ARCHIVE</h1>
-
   <div id="chat-box"></div>
 
-  <form id="chat-form" style="display: none;">
+  <form id="chat-form" style="display:none;">
     <select id="character">
       <option value="Eventreur">Eventreur</option>
       <option value="Dr. Minerva">Dr. Minerva</option>
@@ -47,33 +45,62 @@
     <button type="submit">Send</button>
   </form>
 
-  <script>
-    const passwordScreen = document.getElementById('password-screen');
-    const accessButton = document.getElementById('access-button');
-    const errorMessage = document.getElementById('error-message');
-    const chatForm = document.getElementById('chat-form');
-    const chatBox = document.getElementById('chat-box');
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-    accessButton.addEventListener('click', () => {
-      const code = document.getElementById('access-code').value;
-      if (code === '7281') {
-        passwordScreen.style.display = 'none';
-        chatForm.style.display = 'block';
-      } else {
-        errorMessage.style.display = 'block';
-      }
+    // Your Firebase config here:
+    const firebaseConfig = {
+ apiKey: "AIzaSyCEnayZ7B7VYH_55IKjdRGriey5ffdPqRA",
+  authDomain: "log-7281.firebaseapp.com",
+  databaseURL: "https://log-7281-default-rtdb.firebaseio.com",
+  projectId: "log-7281",
+  storageBucket: "log-7281.firebasestorage.app",
+  messagingSenderId: "997557129411",
+  appId: "1:997557129411:web:ef247b0fff165df2ef9276"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const messagesRef = ref(db, 'messages');
+
+    const chatForm = document.getElementById("chat-form");
+    const chatBox = document.getElementById("chat-box");
+    const passwordScreen = document.getElementById("password-screen");
+    const accessButton = document.getElementById("access-button");
+    const errorMessage = document.getElementById("error-message");
+
+    // Display existing messages live:
+    onChildAdded(messagesRef, (data) => {
+      const val = data.val();
+      const div = document.createElement("div");
+      div.textContent = `[${val.character}] ${val.message}`;
+      chatBox.appendChild(div);
     });
 
-    chatForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const character = document.getElementById('character').value;
-      const message = document.getElementById('message').value;
+    // Password check to show chat input form
+    accessButton.addEventListener("click", () => {
+      const code = document.getElementById("access-code").value;
+      if (code === "7281") {
+        passwordScreen.style.display = "none";
+        chatForm.style.display = "block";
 
-      const div = document.createElement('div');
-      div.textContent = `[${character}] ${message}`;
-      chatBox.appendChild(div);
+        // Only allow message sending if password correct
+        chatForm.addEventListener("submit", (e) => {
+          e.preventDefault();
+          const character = document.getElementById("character").value;
+          const message = document.getElementById("message").value;
 
-      chatForm.reset();
+          push(messagesRef, {
+            character,
+            message,
+            timestamp: Date.now(2:58)
+          });
+          chatForm.reset();
+        });
+      } else {
+        errorMessage.style.display = "block";
+      }
     });
   </script>
 </body>
