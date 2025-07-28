@@ -5,13 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LOG-7281-ARCHIVE</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    #password-screen {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: #000;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    #error-message {
+      color: red;
+      display: none;
+      margin-top: 10px;
+    }
+  </style>
 </head>
 <body>
+  <div id="password-screen">
+    <h2>Enter Access Code</h2>
+    <input type="password" id="access-code" placeholder="Access Code" />
+    <button id="access-button">Enter</button>
+    <p id="error-message">Incorrect code.</p>
+  </div>
+
   <h1>LOG-7281-ARCHIVE</h1>
 
   <div id="chat-box"></div>
 
-  <!-- Chat form is only shown if the authenticated user is the creator -->
   <form id="chat-form" style="display: none;">
     <select id="character">
       <option value="Eventreur">Eventreur</option>
@@ -22,58 +47,34 @@
     <button type="submit">Send</button>
   </form>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  <script>
+    const passwordScreen = document.getElementById('password-screen');
+    const accessButton = document.getElementById('access-button');
+    const errorMessage = document.getElementById('error-message');
+    const chatForm = document.getElementById('chat-form');
+    const chatBox = document.getElementById('chat-box');
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCEnayZ7B7VYH_55IKjdRGriey5ffdPqRA",
-  authDomain: "log-7281.firebaseapp.com",
-  databaseURL: "https://log-7281-default-rtdb.firebaseio.com",
-  projectId: "log-7281",
-  storageBucket: "log-7281.firebasestorage.app",
-  messagingSenderId: "997557129411",
-  appId: "1:997557129411:web:ef247b0fff165df2ef9276"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const auth = getAuth(app);
-    const messagesRef = ref(db, 'messages');
-
-    const chatForm = document.getElementById("chat-form");
-    const chatBox = document.getElementById("chat-box");
-
-    onChildAdded(messagesRef, (data) => {
-      const val = data.val();
-      const div = document.createElement("div");
-      div.textContent = `[${val.character}] ${val.message}`;
-      chatBox.appendChild(div);
+    accessButton.addEventListener('click', () => {
+      const code = document.getElementById('access-code').value;
+      if (code === '7281') {
+        passwordScreen.style.display = 'none';
+        chatForm.style.display = 'block';
+      } else {
+        errorMessage.style.display = 'block';
+      }
     });
 
-    // Sign in silently with known creator credentials
-    const creatorEmail = "frontrunnahz@example.com";
-    const creatorPassword = "1945";
+    chatForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const character = document.getElementById('character').value;
+      const message = document.getElementById('message').value;
 
-    signInWithEmailAndPassword(auth, creatorEmail, creatorPassword)
-      .then(() => {
-        chatForm.style.display = "block";
-        chatForm.addEventListener("submit", (e) => {
-          e.preventDefault();
-          const character = document.getElementById("character").value;
-          const message = document.getElementById("message").value;
-          push(messagesRef, {
-            character,
-            message,
-            timestamp: Date.now()
-          });
-          chatForm.reset();
-        });
-      })
-      .catch((error) => {
-        console.log("Chat input disabled for viewers.");
-      });
+      const div = document.createElement('div');
+      div.textContent = `[${character}] ${message}`;
+      chatBox.appendChild(div);
+
+      chatForm.reset();
+    });
   </script>
 </body>
 </html>
