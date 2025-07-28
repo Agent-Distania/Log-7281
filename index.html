@@ -2,153 +2,97 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>CIA Chat Log</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LOG-7281-ARCHIVE</title>
   <style>
     body {
-      background: #0b0c0f;
-      color: #d3d3d3;
-      font-family: 'Courier New', Courier, monospace;
-      margin: 0; padding: 20px;
-      user-select: none;
-    }
-    h1 {
-      text-align: center;
-      color: #78c2ad;
-      margin-bottom: 1rem;
-      letter-spacing: 3px;
-      text-transform: uppercase;
+      background-color: #111;
+      color: #0f0;
+      font-family: monospace;
+      padding: 20px;
     }
     #chat-box {
-      background: #121417;
-      border: 2px solid #78c2ad;
-      border-radius: 5px;
-      max-width: 700px;
-      height: 400px;
-      margin: 0 auto 1rem auto;
-      overflow-y: auto;
+      border: 1px solid #0f0;
       padding: 10px;
-      box-shadow: 0 0 10px #78c2ad;
+      height: 300px;
+      overflow-y: scroll;
+      margin-bottom: 10px;
       white-space: pre-wrap;
     }
-    .message {
-      margin-bottom: 0.7rem;
-      padding: 4px 8px;
-      border-left: 3px solid #78c2ad;
-      background: #16191d;
-      border-radius: 2px;
-    }
-    .guest-name {
-      color: #78c2ad;
-      font-weight: bold;
-      margin-right: 8px;
-      text-transform: uppercase;
-    }
     #chat-form {
-      max-width: 700px;
-      margin: 0 auto;
       display: flex;
       gap: 10px;
     }
-    #message {
-      flex: 1;
-      padding: 10px;
-      font-family: 'Courier New', monospace;
-      font-size: 16px;
-      background: #121417;
-      color: #d3d3d3;
-      border: 2px solid #78c2ad;
-      border-radius: 3px;
-    }
-    #send-btn {
-      padding: 10px 20px;
-      font-family: 'Courier New', monospace;
-      font-size: 16px;
-      background: #78c2ad;
-      color: #0b0c0f;
-      border: none;
-      border-radius: 3px;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-    #send-btn:hover {
-      background: #5fa895;
+    #chat-form input, #chat-form button {
+      font-family: monospace;
     }
   </style>
 </head>
 <body>
-
-  <h1>CIA CHAT LOG</h1>
+  <h1>LOG-7281-ARCHIVE</h1>
 
   <div id="chat-box"></div>
 
   <form id="chat-form">
-    <input type="text" id="message" placeholder="Enter message..." autocomplete="off" required />
-    <button type="submit" id="send-btn">Send</button>
+    <input type="text" id="message" placeholder="Enter message" required />
+    <button type="submit">Send</button>
   </form>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    import { getDatabase, ref, push, onChildAdded, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-    // Replace with your Firebase config
     const firebaseConfig = {
-    apiKey: "AIzaSyCEnayZ7B7VYH_55IKjdRGriey5ffdPqRA",
-  authDomain: "log-7281.firebaseapp.com",
-  databaseURL: "https://log-7281-default-rtdb.firebaseio.com",
-  projectId: "log-7281",
-  storageBucket: "log-7281.firebasestorage.app",
-  messagingSenderId: "997557129411",
-  appId: "1:997557129411:web:ef247b0fff165df2ef9276",
+      apiKey: "AIzaSyCEnayZ7B7VYH_55IKjdRGriey5ffdPqRA",
+      authDomain: "log-7281.firebaseapp.com",
+      databaseURL: "https://log-7281-default-rtdb.firebaseio.com",
+      projectId: "log-7281",
+      storageBucket: "log-7281.appspot.com",
+      messagingSenderId: "997557129411",
+      appId: "1:997557129411:web:ef247b0fff165df2ef9276"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const messagesRef = ref(db, 'messages');
 
-    const chatBox = document.getElementById('chat-box');
-    const chatForm = document.getElementById('chat-form');
-    const messageInput = document.getElementById('message');
+    const chatForm = document.getElementById("chat-form");
+    const chatBox = document.getElementById("chat-box");
+    const messageInput = document.getElementById("message");
 
-    // Fixed guest name for testing
-    const guestName = "Guest#Test";
+    let guestNumber = localStorage.getItem("guestNumber");
 
-    // Function to add message to chat box
-    function addMessage({ guest, text }) {
-      const div = document.createElement('div');
-      div.classList.add('message');
-      div.innerHTML = `<span class="guest-name">${guest}</span> ${text}`;
-      chatBox.appendChild(div);
-      chatBox.scrollTop = chatBox.scrollHeight;
+    if (!guestNumber) {
+      const guestCounterRef = ref(db, "guestCounter");
+
+      runTransaction(guestCounterRef, (current) => {
+        return (current || 0) + 1;
+      }).then((result) => {
+        guestNumber = "Guest " + result.snapshot.val();
+        localStorage.setItem("guestNumber", guestNumber);
+      }).catch((error) => {
+        console.error("Error assigning guest number:", error);
+      });
     }
 
-    // Listen for new messages and display them
-    onChildAdded(messagesRef, (snapshot) => {
-      const data = snapshot.val();
-      addMessage({ guest: data.guest, text: data.text });
+    onChildAdded(messagesRef, (data) => {
+      const val = data.val();
+      const div = document.createElement("div");
+      div.textContent = `[${val.guest}] ${val.message}`;
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
     });
 
-    // Handle form submit to send message
-    chatForm.addEventListener('submit', (e) => {
+    chatForm.addEventListener("submit", (e) => {
       e.preventDefault();
-      const text = messageInput.value.trim();
-      if (!text) return;
-
-      console.log("Sending message:", text);
-
+      const message = messageInput.value;
       push(messagesRef, {
-        guest: guestName,
-        text,
+        guest: guestNumber,
+        message,
         timestamp: Date.now()
-      }).then(() => {
-        console.log("Message sent successfully");
-      }).catch(err => {
-        console.error("Error sending message:", err);
       });
-
-      messageInput.value = '';
+      chatForm.reset();
     });
   </script>
-
 </body>
 </html>
