@@ -61,6 +61,7 @@
     <input type="text" id="message" placeholder="Enter message" required />
     <input type="file" id="image-input" accept="image/*">
     <button type="submit" disabled>Send</button>
+    <button type="button" id="send-image-button">Send Image</button>
   </form>
 
   <script type="module">
@@ -85,7 +86,8 @@
     const chatBox = document.getElementById("chat-box");
     const messageInput = document.getElementById("message");
     const imageInput = document.getElementById("image-input");
-    const sendButton = chatForm.querySelector("button");
+    const sendButton = chatForm.querySelector("button[type='submit']");
+    const sendImageButton = document.getElementById("send-image-button");
     const changeUsernameBtn = document.getElementById("change-username");
 
     let username = localStorage.getItem("username");
@@ -145,6 +147,25 @@
       }
 
       chatForm.reset();
+    });
+
+    sendImageButton.addEventListener("click", () => {
+      const file = imageInput.files[0];
+      if (!file) {
+        alert("Please select an image first.");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        push(messagesRef, {
+          username,
+          image: event.target.result,
+          timestamp: Date.now()
+        });
+        chatForm.reset();
+      };
+      reader.readAsDataURL(file);
     });
 
     changeUsernameBtn.addEventListener("click", () => {
