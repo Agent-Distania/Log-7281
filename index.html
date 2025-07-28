@@ -53,8 +53,6 @@
       push,
       onChildAdded,
       runTransaction,
-      get,
-      set
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
     const firebaseConfig = {
@@ -97,59 +95,26 @@
       }
     }
 
-    async function isUsernameTaken(name) {
-      const nameRef = ref(db, 'usernames/' + name.toLowerCase());
-      try {
-        const snapshot = await get(nameRef);
-        return snapshot.exists();
-      } catch (e) {
-        console.error('Failed to check username:', e);
-        return true; // Fail safe: assume taken to avoid duplicates
-      }
-    }
-
-    async function markUsernameTaken(name) {
-      const nameRef = ref(db, 'usernames/' + name.toLowerCase());
-      try {
-        await set(nameRef, true);
-      } catch (e) {
-        console.error('Failed to mark username as taken:', e);
-      }
-    }
-
     async function initUser() {
       if (!username) {
-        let inputName = null;
-        while (true) {
-          inputName = prompt(
-            "Enter your username (unique, case insensitive). Leave blank for a guest number:"
-          );
-          if (!inputName || inputName.trim() === "") {
-            // blank input fallback to guest number
-            sendButton.disabled = true;
-            const guestName = await assignGuestNumber();
-            if (guestName) {
-              username = guestName;
-              localStorage.setItem("username", username);
-              sendButton.disabled = false;
-              errorMsg.textContent = "";
-            } else {
-              sendButton.disabled = true;
-            }
-            break;
-          }
-
-          inputName = inputName.trim();
-          const taken = await isUsernameTaken(inputName);
-          if (taken) {
-            alert("Username already taken, please choose another.");
-          } else {
-            username = inputName;
+        const inputName = prompt(
+          "Enter your username (or leave blank for a guest number):"
+        );
+        if (inputName && inputName.trim() !== "") {
+          username = inputName.trim();
+          localStorage.setItem("username", username);
+          sendButton.disabled = false;
+          errorMsg.textContent = "";
+        } else {
+          sendButton.disabled = true;
+          const guestName = await assignGuestNumber();
+          if (guestName) {
+            username = guestName;
             localStorage.setItem("username", username);
             sendButton.disabled = false;
             errorMsg.textContent = "";
-            await markUsernameTaken(username);
-            break;
+          } else {
+            sendButton.disabled = true;
           }
         }
       } else {
