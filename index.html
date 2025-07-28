@@ -26,6 +26,11 @@
     #chat-form input, #chat-form button {
       font-family: monospace;
     }
+    img.chat-image {
+      max-width: 200px;
+      display: block;
+      margin-top: 5px;
+    }
   </style>
 </head>
 <body>
@@ -89,7 +94,11 @@
       const val = data.val();
       const div = document.createElement("div");
       const time = formatTimestamp(val.timestamp);
-      div.innerHTML = `[${time}] [${val.username}] ${val.message}`;
+      if (val.message.startsWith('<img')) {
+        div.innerHTML = `[${time}] [${val.username}]<br>${val.message}`;
+      } else {
+        div.innerHTML = `[${time}] [${val.username}] ${val.message}`;
+      }
       chatBox.appendChild(div);
       chatBox.scrollTop = chatBox.scrollHeight;
     });
@@ -129,9 +138,10 @@
       const reader = new FileReader();
       reader.onload = function(e) {
         const imageData = e.target.result;
+        const imgTag = `<img src="${imageData}" class="chat-image" />`;
         push(messagesRef, {
           username,
-          message: `<img src="${imageData}" style="max-width: 200px;" />`,
+          message: imgTag,
           timestamp: Date.now()
         });
       };
