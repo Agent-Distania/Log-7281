@@ -52,7 +52,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
-      getDatabase, ref, push, onChildAdded, set, onValue, onDisconnect, update
+      getDatabase, ref, push, onChildAdded, onChildChanged, set, onValue, onDisconnect, update
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
     const firebaseConfig = {
@@ -97,6 +97,7 @@
 
     function createMessageElement(key, val) {
       const div = document.createElement("div");
+      div.dataset.key = key;
       const time = formatTimestamp(val.timestamp);
       const isMedia = val.message.startsWith('<img') || val.message.startsWith('<video') || val.message.startsWith('<audio');
       const contentSpan = document.createElement("span");
@@ -182,6 +183,17 @@
       const div = createMessageElement(key, val);
       chatBox.appendChild(div);
       chatBox.scrollTop = chatBox.scrollHeight;
+    });
+
+    // 🔁 NEW: Real-time edit sync across all users
+    onChildChanged(messagesRef, (data) => {
+      const key = data.key;
+      const newVal = data.val();
+      const updatedDiv = createMessageElement(key, newVal);
+      const oldDiv = chatBox.querySelector(`div[data-key="${key}"]`);
+      if (oldDiv) {
+        chatBox.replaceChild(updatedDiv, oldDiv);
+      }
     });
 
     chatForm.addEventListener("submit", (e) => {
