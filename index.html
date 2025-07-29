@@ -288,12 +288,11 @@
 
     onValue(connectionsRef, (snapshot) => {
       const connections = snapshot.val() || {};
-      const usernames = Object.values(connections);
+      // Filter to only valid usernames (non-empty strings)
+      const usernames = Object.values(connections).filter(user => typeof user === 'string' && user.trim() !== '');
 
-      // Update user count display
       userCountDisplay.textContent = `Users online: ${usernames.length}`;
 
-      // Clear dropdown and add new options
       onlineUsersDropdown.innerHTML = "";
       usernames.forEach((user) => {
         const option = document.createElement("option");
