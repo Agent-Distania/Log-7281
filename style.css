@@ -39,21 +39,21 @@ body {
 #chat-box {
   position: relative;
   height: 100%;
-  padding: 5px 5px 10px 10px; /* keep some side and bottom padding */
-  overflow-y: scroll;
+  padding: 5px 10px 20px 10px; /* increased bottom padding for last message */
+  overflow-y: auto;             /* auto scrollbar for smoother behavior */
   white-space: pre-wrap;
   background-color: transparent;
   color: #0f0;
   font-family: monospace;
   z-index: 1;
-  box-sizing: border-box;   /* ensure padding included in height */
-  padding-top: 5px;          /* Reduced top padding to bring text up */
-  margin-top: -3px;          /* Slight negative margin to lift content */
+  box-sizing: border-box;       /* include padding in height */
+  padding-top: 5px;             /* reduced top padding to bring text up */
+  margin-top: -3px;             /* slight negative margin to lift content */
 }
 
 /* Style each message container */
 #chat-box div {
-  line-height: 1.2;         /* tighter line spacing for dense text */
+  line-height: 1.2;             /* tighter line spacing for dense text */
   margin-top: 0;
   padding-top: 0;
 }
