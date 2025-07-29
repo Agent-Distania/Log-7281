@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>The Underground</title>
-  <link rel="stylesheet" href="style.css" /> <!-- ✅ External CSS if used -->
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <h1>The Underground</h1>
-  <p id="user-count" style="color: lime; font-weight: bold;">Users online: 0</p>
+  <p id="user-count">Users online: 0</p> <!-- ✅ User counter display -->
 
   <button id="change-username" style="margin-bottom: 10px;">Change Username</button>
 
@@ -25,17 +25,9 @@
   </form>
 
   <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
-      initializeApp
-    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import {
-      getDatabase,
-      ref,
-      push,
-      onChildAdded,
-      onValue,
-      onDisconnect,
-      set
+      getDatabase, ref, push, onChildAdded, set, onValue, onDisconnect
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
     const firebaseConfig = {
@@ -50,7 +42,7 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    const messagesRef = ref(db, 'messages');
+    const messagesRef = ref(db, "messages");
 
     const chatForm = document.getElementById("chat-form");
     const chatBox = document.getElementById("chat-box");
@@ -62,7 +54,6 @@
     const userCountDisplay = document.getElementById("user-count");
 
     let username = localStorage.getItem("username");
-
     if (!username) {
       username = prompt("Enter your username:").trim();
       if (!username) username = "Anonymous";
@@ -79,7 +70,6 @@
       return `${formattedHours}:${minutes} ${ampm}`;
     }
 
-    // ✅ Live messages
     onChildAdded(messagesRef, (data) => {
       const val = data.val();
       const div = document.createElement("div");
@@ -93,7 +83,6 @@
       chatBox.scrollTop = chatBox.scrollHeight;
     });
 
-    // ✅ Message sending
     chatForm.addEventListener("submit", (e) => {
       e.preventDefault();
       const message = messageInput.value.trim();
@@ -127,14 +116,14 @@
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = function (e) {
+      reader.onload = function(e) {
         const fileType = file.type;
         let mediaTag = "";
 
         if (fileType.startsWith("image/")) {
-          mediaTag = `<img src="${e.target.result}" class="chat-image" style="max-width: 200px;" />`;
+          mediaTag = `<img src="${e.target.result}" class="chat-image" />`;
         } else if (fileType === "video/mp4") {
-          mediaTag = `<video controls class="chat-video" style="max-width: 200px;"><source src="${e.target.result}" type="video/mp4">Your browser does not support the video tag.</video>`;
+          mediaTag = `<video controls class="chat-video"><source src="${e.target.result}" type="video/mp4">Your browser does not support the video tag.</video>`;
         } else if (fileType === "audio/mpeg") {
           mediaTag = `<audio controls class="chat-audio"><source src="${e.target.result}" type="audio/mpeg">Your browser does not support the audio tag.</audio>`;
         } else {
@@ -151,11 +140,17 @@
       reader.readAsDataURL(file);
     });
 
-    // ✅ Realtime presence: user tracking
+    // ✅ Presence system: live online user counter
     const connectionsRef = ref(db, "connections");
-    const myConnectionRef = push(connectionsRef);
-    set(myConnectionRef, true);
-    onDisconnect(myConnectionRef).remove();
+    const connectedRef = ref(db, ".info/connected");
+
+    onValue(connectedRef, (snap) => {
+      if (snap.val() === true) {
+        const myConnection = push(connectionsRef);
+        set(myConnection, true);
+        onDisconnect(myConnection).remove();
+      }
+    });
 
     onValue(connectionsRef, (snapshot) => {
       const count = snapshot.size;
