@@ -63,6 +63,16 @@
 
   <button id="change-username" style="margin-bottom: 10px;">Change Username</button>
 
+  <div id="channel-container" style="margin-bottom: 10px;">
+    <label for="channel-select" style="font-family: monospace; color: #0f0;">Channel:</label>
+    <select id="channel-select">
+      <option value="general">#general</option>
+      <option value="memes">#memes</option>
+      <option value="gaming">#gaming</option>
+      <option value="tech">#tech</option>
+    </select>
+  </div>
+
   <div id="online-users-container">
     Online Users:
     <select id="online-users-dropdown" size="1" title="Select to see online users">
@@ -100,7 +110,6 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    const messagesRef = ref(db, "messages");
 
     const chatForm = document.getElementById("chat-form");
     const chatBox = document.getElementById("chat-box");
@@ -111,6 +120,7 @@
     const sendImageBtn = document.getElementById("sendImage");
     const userCountDisplay = document.getElementById("user-count");
     const onlineUsersDropdown = document.getElementById("online-users-dropdown");
+    const channelSelect = document.getElementById("channel-select");
 
     let username = localStorage.getItem("username");
     if (!username) {
@@ -119,6 +129,20 @@
       localStorage.setItem("username", username);
     }
     sendButton.disabled = false;
+
+    let currentChannel = localStorage.getItem("channel") || "general";
+    channelSelect.value = currentChannel;
+
+    function getMessagesRef(channel) {
+      return ref(db, `channels/${channel}/messages`);
+    }
+    let messagesRef = getMessagesRef(currentChannel);
+
+    channelSelect.addEventListener("change", () => {
+      currentChannel = channelSelect.value;
+      localStorage.setItem("channel", currentChannel);
+      location.reload(); // simple reload to switch listener
+    });
 
     function formatTimestamp(timestamp) {
       const date = new Date(timestamp);
@@ -190,7 +214,7 @@
           return;
         }
 
-        const messageRef = ref(db, "messages/" + key);
+        const messageRef = ref(db, `channels/${currentChannel}/messages/${key}`);
         await update(messageRef, {
           message: newMessage,
           timestamp: Date.now()
@@ -213,20 +237,24 @@
       }
     }
 
-    onChildAdded(messagesRef, (data) => {
-      const val = data.val();
-      const key = data.key;
-      const div = createMessageElement(key, val);
-      chatBox.appendChild(div);
-      chatBox.scrollTop = chatBox.scrollHeight;
-    });
+    function listenForMessages() {
+      onChildAdded(messagesRef, (data) => {
+        const val = data.val();
+        const key = data.key;
+        const div = createMessageElement(key, val);
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      });
+    }
+
+    listenForMessages();
 
     chatForm.addEventListener("submit", (e) => {
       e.preventDefault();
       const message = messageInput.value.trim();
       if (message === "") return;
 
-      push(messagesRef, {
+      push(getMessagesRef(currentChannel), {
         username,
         message,
         timestamp: Date.now()
@@ -269,7 +297,7 @@
           return;
         }
 
-        push(messagesRef, {
+        push(getMessagesRef(currentChannel), {
           username,
           message: mediaTag,
           timestamp: Date.now()
