@@ -51,6 +51,10 @@
       border-radius: 3px;
       cursor: pointer;
     }
+    .highlighted-user {
+      background-color: #f00 !important;
+      color: #fff !important;
+    }
   </style>
 </head>
 <body>
@@ -61,7 +65,9 @@
 
   <div id="online-users-container">
     Online Users:
-    <select id="online-users-dropdown" size="1" title="Select to see online users"></select>
+    <select id="online-users-dropdown" size="1" title="Select to see online users">
+      <option value="">-- Select User --</option>
+    </select>
   </div>
 
   <div id="chat-container">
@@ -125,6 +131,9 @@
 
     function createMessageElement(key, val) {
       const div = document.createElement("div");
+      div.classList.add("message");
+      div.dataset.username = val.username;
+
       const time = formatTimestamp(val.timestamp);
       const isMedia = val.message.startsWith('<img') || val.message.startsWith('<video') || val.message.startsWith('<audio');
       const contentSpan = document.createElement("span");
@@ -283,19 +292,30 @@
     onValue(connectionsRef, (snapshot) => {
       const connections = snapshot.val() || {};
 
-      // ✅ NEW: Unique usernames only
       const seen = new Set();
       const usernames = Object.values(connections).filter(user => {
         return typeof user === 'string' && user.trim() !== '' && !seen.has(user) && seen.add(user);
       });
 
       userCountDisplay.textContent = `Users online: ${usernames.length}`;
-      onlineUsersDropdown.innerHTML = "";
+      onlineUsersDropdown.innerHTML = '<option value="">-- Select User --</option>';
       usernames.forEach((user) => {
         const option = document.createElement("option");
         option.textContent = user;
         option.value = user;
         onlineUsersDropdown.appendChild(option);
+      });
+    });
+
+    // 🔴 Highlight selected user's messages
+    onlineUsersDropdown.addEventListener("change", () => {
+      const selectedUser = onlineUsersDropdown.value;
+      document.querySelectorAll("#chat-box .message").forEach(msg => {
+        if (msg.dataset.username === selectedUser && selectedUser !== "") {
+          msg.classList.add("highlighted-user");
+        } else {
+          msg.classList.remove("highlighted-user");
+        }
       });
     });
   </script>
