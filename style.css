@@ -84,3 +84,16 @@ audio.chat-audio {
     opacity: 1;
   }
 }
+
+/* === Added tweaks to bring text up and tighten spacing === */
+
+#chat-box {
+  padding-top: 5px;       /* Reduce top padding to bring text up */
+  margin-top: -3px;       /* Slight negative margin to lift content */
+}
+
+#chat-box div {
+  line-height: 1.2;       /* Tighter line spacing for dense text */
+  margin-top: 0;
+  padding-top: 0;
+}
