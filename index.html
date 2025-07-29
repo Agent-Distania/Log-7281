@@ -5,10 +5,32 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>The Underground</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    /* Add a small style for the edit input and buttons */
+    .edit-input {
+      font-family: monospace;
+      font-size: 1em;
+      width: 60%;
+      margin-right: 10px;
+    }
+    .edit-btn, .save-btn, .cancel-btn {
+      cursor: pointer;
+      font-family: monospace;
+      background: none;
+      border: 1px solid #0f0;
+      color: #0f0;
+      padding: 2px 6px;
+      margin-left: 4px;
+    }
+    .edit-btn:hover, .save-btn:hover, .cancel-btn:hover {
+      background-color: #0f0;
+      color: #000;
+    }
+  </style>
 </head>
 <body>
   <h1>The Underground</h1>
-  <p id="user-count">Users online: 0</p> <!-- ✅ User counter display -->
+  <p id="user-count">Users online: 0</p>
 
   <button id="change-username" style="margin-bottom: 10px;">Change Username</button>
 
@@ -27,7 +49,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
-      getDatabase, ref, push, onChildAdded, set, onValue, onDisconnect
+      getDatabase, ref, push, onChildAdded, set, onValue, onDisconnect, update
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
     const firebaseConfig = {
@@ -70,15 +92,104 @@
       return `${formattedHours}:${minutes} ${ampm}`;
     }
 
-    onChildAdded(messagesRef, (data) => {
-      const val = data.val();
+    // Helper: create message element with edit option if sender
+    function createMessageElement(key, val) {
       const div = document.createElement("div");
       const time = formatTimestamp(val.timestamp);
-      if (val.message.startsWith('<img') || val.message.startsWith('<video') || val.message.startsWith('<audio')) {
-        div.innerHTML = `[${time}] [${val.username}]<br>${val.message}`;
+
+      // Check if message is media or text
+      const isMedia = val.message.startsWith('<img') || val.message.startsWith('<video') || val.message.startsWith('<audio');
+
+      // Container for message content
+      const contentSpan = document.createElement("span");
+
+      if (isMedia) {
+        contentSpan.innerHTML = val.message;
       } else {
-        div.innerHTML = `[${time}] [${val.username}] ${val.message}`;
+        contentSpan.textContent = val.message;
       }
+
+      div.innerHTML = `[${time}] [${val.username}] `;
+      div.appendChild(contentSpan);
+
+      // Only add edit button for text messages from the current user
+      if (!isMedia && val.username === username) {
+        const editBtn = document.createElement("button");
+        editBtn.textContent = "Edit";
+        editBtn.className = "edit-btn";
+
+        editBtn.addEventListener("click", () => {
+          enterEditMode(div, key, val, contentSpan, editBtn);
+        });
+
+        div.appendChild(editBtn);
+      }
+
+      return div;
+    }
+
+    function enterEditMode(div, key, val, contentSpan, editBtn) {
+      // Hide edit button and message text
+      editBtn.style.display = "none";
+      contentSpan.style.display = "none";
+
+      // Create input with current message text
+      const input = document.createElement("input");
+      input.type = "text";
+      input.value = val.message;
+      input.className = "edit-input";
+
+      // Create save and cancel buttons
+      const saveBtn = document.createElement("button");
+      saveBtn.textContent = "Save";
+      saveBtn.className = "save-btn";
+
+      const cancelBtn = document.createElement("button");
+      cancelBtn.textContent = "Cancel";
+      cancelBtn.className = "cancel-btn";
+
+      div.appendChild(input);
+      div.appendChild(saveBtn);
+      div.appendChild(cancelBtn);
+
+      // Save handler
+      saveBtn.addEventListener("click", async () => {
+        const newMessage = input.value.trim();
+        if (newMessage === "") {
+          alert("Message cannot be empty.");
+          return;
+        }
+
+        // Update message in Firebase
+        const messageRef = ref(db, "messages/" + key);
+        await update(messageRef, {
+          message: newMessage,
+          timestamp: Date.now() // Optionally update timestamp on edit
+        });
+
+        // Update UI
+        contentSpan.textContent = newMessage;
+        exitEditMode();
+      });
+
+      // Cancel handler
+      cancelBtn.addEventListener("click", () => {
+        exitEditMode();
+      });
+
+      function exitEditMode() {
+        input.remove();
+        saveBtn.remove();
+        cancelBtn.remove();
+        contentSpan.style.display = "";
+        editBtn.style.display = "";
+      }
+    }
+
+    onChildAdded(messagesRef, (data) => {
+      const val = data.val();
+      const key = data.key;
+      const div = createMessageElement(key, val);
       chatBox.appendChild(div);
       chatBox.scrollTop = chatBox.scrollHeight;
     });
@@ -140,7 +251,7 @@
       reader.readAsDataURL(file);
     });
 
-    // ✅ Presence system: live online user counter
+    // Presence system: live online user counter
     const connectionsRef = ref(db, "connections");
     const connectedRef = ref(db, ".info/connected");
 
