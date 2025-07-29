@@ -11,13 +11,39 @@
       font-family: monospace;
       padding: 20px;
     }
-    #chat-box {
-      border: 1px solid #0f0;
-      padding: 10px;
+    #chat-container {
+      position: relative;
       height: 300px;
-      overflow-y: scroll;
       margin-bottom: 10px;
+      border: 1px solid #0f0;
+      overflow: hidden;
+    }
+    #chat-bg {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          rgba(0,255,0,0.05),
+          rgba(0,255,0,0.05) 1px,
+          transparent 1px,
+          transparent 2px
+        );
+      animation: glitchLines 2s infinite linear;
+      z-index: 0;
+    }
+    #chat-box {
+      position: relative;
+      height: 100%;
+      padding: 10px;
+      overflow-y: scroll;
+      margin-bottom: 0; /* removed margin here, handled by container */
       white-space: pre-wrap;
+      background-color: transparent;
+      color: #0f0;
+      font-family: monospace;
+      z-index: 1;
     }
     #chat-form {
       display: flex;
@@ -36,13 +62,22 @@
       display: block;
       margin-top: 5px;
     }
+
+    @keyframes glitchLines {
+      0%, 100% { background-position: 0 0; }
+      50% { background-position: 0 1px; }
+    }
   </style>
 </head>
 <body>
   <h1>Underground</h1>
 
   <button id="change-username" style="margin-bottom: 10px;">Change Username</button>
-  <div id="chat-box"></div>
+
+  <div id="chat-container">
+    <div id="chat-bg"></div>
+    <div id="chat-box"></div>
+  </div>
 
   <form id="chat-form">
     <input type="text" id="message" placeholder="Enter message" required />
@@ -70,6 +105,7 @@
     const messagesRef = ref(db, 'messages');
 
     const chatForm = document.getElementById("chat-form");
+    const chatContainer = document.getElementById("chat-container");
     const chatBox = document.getElementById("chat-box");
     const messageInput = document.getElementById("message");
     const sendButton = chatForm.querySelector("button");
