@@ -4,10 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>The Underground</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css" /> <!-- ✅ External CSS if used -->
 </head>
 <body>
   <h1>The Underground</h1>
+  <p id="user-count" style="color: lime; font-weight: bold;">Users online: 0</p>
 
   <button id="change-username" style="margin-bottom: 10px;">Change Username</button>
 
@@ -24,8 +25,18 @@
   </form>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    import {
+      initializeApp
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getDatabase,
+      ref,
+      push,
+      onChildAdded,
+      onValue,
+      onDisconnect,
+      set
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCEnayZ7B7VYH_55IKjdRGriey5ffdPqRA",
@@ -48,6 +59,7 @@
     const changeUsernameBtn = document.getElementById("change-username");
     const imageInput = document.getElementById("imageInput");
     const sendImageBtn = document.getElementById("sendImage");
+    const userCountDisplay = document.getElementById("user-count");
 
     let username = localStorage.getItem("username");
 
@@ -67,6 +79,7 @@
       return `${formattedHours}:${minutes} ${ampm}`;
     }
 
+    // ✅ Live messages
     onChildAdded(messagesRef, (data) => {
       const val = data.val();
       const div = document.createElement("div");
@@ -80,6 +93,7 @@
       chatBox.scrollTop = chatBox.scrollHeight;
     });
 
+    // ✅ Message sending
     chatForm.addEventListener("submit", (e) => {
       e.preventDefault();
       const message = messageInput.value.trim();
@@ -113,14 +127,14 @@
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = function(e) {
+      reader.onload = function (e) {
         const fileType = file.type;
         let mediaTag = "";
 
         if (fileType.startsWith("image/")) {
-          mediaTag = `<img src="${e.target.result}" class="chat-image" />`;
+          mediaTag = `<img src="${e.target.result}" class="chat-image" style="max-width: 200px;" />`;
         } else if (fileType === "video/mp4") {
-          mediaTag = `<video controls class="chat-video"><source src="${e.target.result}" type="video/mp4">Your browser does not support the video tag.</video>`;
+          mediaTag = `<video controls class="chat-video" style="max-width: 200px;"><source src="${e.target.result}" type="video/mp4">Your browser does not support the video tag.</video>`;
         } else if (fileType === "audio/mpeg") {
           mediaTag = `<audio controls class="chat-audio"><source src="${e.target.result}" type="audio/mpeg">Your browser does not support the audio tag.</audio>`;
         } else {
@@ -135,6 +149,17 @@
         });
       };
       reader.readAsDataURL(file);
+    });
+
+    // ✅ Realtime presence: user tracking
+    const connectionsRef = ref(db, "connections");
+    const myConnectionRef = push(connectionsRef);
+    set(myConnectionRef, true);
+    onDisconnect(myConnectionRef).remove();
+
+    onValue(connectionsRef, (snapshot) => {
+      const count = snapshot.size;
+      userCountDisplay.textContent = `Users online: ${count}`;
     });
   </script>
 </body>
