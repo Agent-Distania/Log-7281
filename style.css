@@ -9,7 +9,7 @@ body {
 /* Chat Area */
 #chat-container {
   position: relative;
-  height: 300px;
+  height: 500px;
   margin-bottom: 10px;
   border: 1px solid #0f0;
   overflow: hidden;
