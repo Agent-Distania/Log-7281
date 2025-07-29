@@ -29,7 +29,6 @@
       max-height: 80vh;
       overflow-y: auto;
     }
-    /* New styles for top-right dropdown container */
     #online-users-container {
       position: fixed;
       top: 10px;
@@ -60,7 +59,6 @@
 
   <button id="change-username" style="margin-bottom: 10px;">Change Username</button>
 
-  <!-- New Online Users Dropdown container -->
   <div id="online-users-container">
     Online Users:
     <select id="online-users-dropdown" size="1" title="Select to see online users"></select>
@@ -106,8 +104,6 @@
     const imageInput = document.getElementById("imageInput");
     const sendImageBtn = document.getElementById("sendImage");
     const userCountDisplay = document.getElementById("user-count");
-
-    // New dropdown reference
     const onlineUsersDropdown = document.getElementById("online-users-dropdown");
 
     let username = localStorage.getItem("username");
@@ -273,13 +269,11 @@
       reader.readAsDataURL(file);
     });
 
-    // Presence system: live online user counter and list
     const connectionsRef = ref(db, "connections");
     const connectedRef = ref(db, ".info/connected");
 
     onValue(connectedRef, (snap) => {
       if (snap.val() === true) {
-        // Push new connection with username as value
         const myConnection = push(connectionsRef);
         set(myConnection, username);
         onDisconnect(myConnection).remove();
@@ -288,11 +282,14 @@
 
     onValue(connectionsRef, (snapshot) => {
       const connections = snapshot.val() || {};
-      // Filter to only valid usernames (non-empty strings)
-      const usernames = Object.values(connections).filter(user => typeof user === 'string' && user.trim() !== '');
+
+      // ✅ NEW: Unique usernames only
+      const seen = new Set();
+      const usernames = Object.values(connections).filter(user => {
+        return typeof user === 'string' && user.trim() !== '' && !seen.has(user) && seen.add(user);
+      });
 
       userCountDisplay.textContent = `Users online: ${usernames.length}`;
-
       onlineUsersDropdown.innerHTML = "";
       usernames.forEach((user) => {
         const option = document.createElement("option");
