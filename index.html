@@ -136,45 +136,33 @@
       imageInput.click();
     });
 
-    // Only videos use blob URLs (no revoke), images and audio use base64
     imageInput.addEventListener("change", async () => {
       const file = imageInput.files[0];
       if (!file) return;
 
-      const fileType = file.type;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const fileType = file.type;
+        let mediaTag = "";
 
-      if (fileType.startsWith("image/") || fileType === "audio/mpeg") {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          let tag = "";
-          if (fileType.startsWith("image/")) {
-            tag = `<img src="${e.target.result}" class="chat-image" />`;
-          } else if (fileType === "audio/mpeg") {
-            tag = `<audio controls class="chat-audio"><source src="${e.target.result}" type="audio/mpeg">Your browser does not support the audio tag.</audio>`;
-          }
-          push(messagesRef, {
-            username,
-            message: tag,
-            timestamp: Date.now()
-          });
-        };
-        reader.readAsDataURL(file);
+        if (fileType.startsWith("image/")) {
+          mediaTag = `<img src="${e.target.result}" class="chat-image" />`;
+        } else if (fileType === "video/mp4") {
+          mediaTag = `<video controls class="chat-video"><source src="${e.target.result}" type="video/mp4">Your browser does not support the video tag.</video>`;
+        } else if (fileType === "audio/mpeg") {
+          mediaTag = `<audio controls class="chat-audio"><source src="${e.target.result}" type="audio/mpeg">Your browser does not support the audio tag.</audio>`;
+        } else {
+          alert("Unsupported file type!");
+          return;
+        }
 
-      } else if (fileType === "video/mp4") {
-        const blobUrl = URL.createObjectURL(file);
-        const videoTag = `<video controls class="chat-video" src="${blobUrl}">Your browser does not support the video tag.</video>`;
         push(messagesRef, {
           username,
-          message: videoTag,
+          message: mediaTag,
           timestamp: Date.now()
         });
-        // NO revoke of blobUrl so it persists
-
-      } else {
-        alert("Unsupported file type!");
-      }
-
-      imageInput.value = "";
+      };
+      reader.readAsDataURL(file);
     });
   </script>
 </body>
