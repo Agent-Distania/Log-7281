@@ -29,6 +29,29 @@
       max-height: 80vh;
       overflow-y: auto;
     }
+    /* New styles for top-right dropdown container */
+    #online-users-container {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      font-family: monospace;
+      color: #0f0;
+      background: #000a;
+      padding: 6px 10px;
+      border: 1px solid #0f0;
+      border-radius: 4px;
+      z-index: 1000;
+      user-select: none;
+    }
+    #online-users-dropdown {
+      background: #000;
+      color: #0f0;
+      border: 1px solid #0f0;
+      font-family: monospace;
+      padding: 4px 8px;
+      border-radius: 3px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -36,6 +59,12 @@
   <p id="user-count">Users online: 0</p>
 
   <button id="change-username" style="margin-bottom: 10px;">Change Username</button>
+
+  <!-- New Online Users Dropdown container -->
+  <div id="online-users-container">
+    Online Users:
+    <select id="online-users-dropdown" size="1" title="Select to see online users"></select>
+  </div>
 
   <div id="chat-container">
     <div id="chat-bg"></div>
@@ -52,7 +81,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
-      getDatabase, ref, push, onChildAdded, onChildChanged, set, onValue, onDisconnect, update
+      getDatabase, ref, push, onChildAdded, set, onValue, onDisconnect, update
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
     const firebaseConfig = {
@@ -78,6 +107,9 @@
     const sendImageBtn = document.getElementById("sendImage");
     const userCountDisplay = document.getElementById("user-count");
 
+    // New dropdown reference
+    const onlineUsersDropdown = document.getElementById("online-users-dropdown");
+
     let username = localStorage.getItem("username");
     if (!username) {
       username = prompt("Enter your username:").trim();
@@ -97,7 +129,6 @@
 
     function createMessageElement(key, val) {
       const div = document.createElement("div");
-      div.dataset.key = key;
       const time = formatTimestamp(val.timestamp);
       const isMedia = val.message.startsWith('<img') || val.message.startsWith('<video') || val.message.startsWith('<audio');
       const contentSpan = document.createElement("span");
@@ -185,17 +216,6 @@
       chatBox.scrollTop = chatBox.scrollHeight;
     });
 
-    // 🔁 NEW: Real-time edit sync across all users
-    onChildChanged(messagesRef, (data) => {
-      const key = data.key;
-      const newVal = data.val();
-      const updatedDiv = createMessageElement(key, newVal);
-      const oldDiv = chatBox.querySelector(`div[data-key="${key}"]`);
-      if (oldDiv) {
-        chatBox.replaceChild(updatedDiv, oldDiv);
-      }
-    });
-
     chatForm.addEventListener("submit", (e) => {
       e.preventDefault();
       const message = messageInput.value.trim();
@@ -253,20 +273,34 @@
       reader.readAsDataURL(file);
     });
 
+    // Presence system: live online user counter and list
     const connectionsRef = ref(db, "connections");
     const connectedRef = ref(db, ".info/connected");
 
     onValue(connectedRef, (snap) => {
       if (snap.val() === true) {
+        // Push new connection with username as value
         const myConnection = push(connectionsRef);
-        set(myConnection, true);
+        set(myConnection, username);
         onDisconnect(myConnection).remove();
       }
     });
 
     onValue(connectionsRef, (snapshot) => {
-      const count = snapshot.size || Object.keys(snapshot.val() || {}).length;
-      userCountDisplay.textContent = `Users online: ${count}`;
+      const connections = snapshot.val() || {};
+      const usernames = Object.values(connections);
+
+      // Update user count display
+      userCountDisplay.textContent = `Users online: ${usernames.length}`;
+
+      // Clear dropdown and add new options
+      onlineUsersDropdown.innerHTML = "";
+      usernames.forEach((user) => {
+        const option = document.createElement("option");
+        option.textContent = user;
+        option.value = user;
+        onlineUsersDropdown.appendChild(option);
+      });
     });
   </script>
 </body>
