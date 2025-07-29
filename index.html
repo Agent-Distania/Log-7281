@@ -28,6 +28,8 @@
     #chat-box {
       max-height: 80vh;
       overflow-y: auto;
+      font-family: monospace;
+      white-space: pre-wrap;
     }
     #online-users-container {
       position: fixed;
@@ -55,6 +57,23 @@
       background-color: #f00 !important;
       color: #fff !important;
     }
+    .reaction-btn {
+      cursor: pointer;
+      margin-left: 6px;
+      font-size: 14px;
+      color: #0f0;
+      user-select: none;
+    }
+    .reaction-btn:hover {
+      color: #ff0;
+    }
+    #typing-indicator {
+      font-family: monospace;
+      color: #0f0;
+      margin-top: 5px;
+      min-height: 20px;
+      user-select: none;
+    }
   </style>
 </head>
 <body>
@@ -73,10 +92,11 @@
   <div id="chat-container">
     <div id="chat-bg"></div>
     <div id="chat-box"></div>
+    <div id="typing-indicator"></div>
   </div>
 
   <form id="chat-form">
-    <input type="text" id="message" placeholder="Enter message" required />
+    <input type="text" id="message" placeholder="Enter message" autocomplete="off" required />
     <button type="submit" disabled>Send</button>
     <input type="file" id="imageInput" accept="image/*,video/mp4,audio/mpeg" style="display: none;" />
     <button type="button" id="sendImage">Send Image</button>
@@ -85,9 +105,10 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
-      getDatabase, ref, push, onChildAdded, set, onValue, onDisconnect, update
+      getDatabase, ref, push, onChildAdded, set, onValue, onDisconnect, update, remove
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
+    // Firebase config (your own keys)
     const firebaseConfig = {
       apiKey: "AIzaSyCEnayZ7B7VYH_55IKjdRGriey5ffdPqRA",
       authDomain: "log-7281.firebaseapp.com",
@@ -100,8 +121,13 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    const messagesRef = ref(db, "messages");
 
+    // References
+    const messagesRef = ref(db, "messages");
+    const connectionsRef = ref(db, "connections");
+    const typingRef = ref(db, "typing");
+
+    // DOM Elements
     const chatForm = document.getElementById("chat-form");
     const chatBox = document.getElementById("chat-box");
     const messageInput = document.getElementById("message");
@@ -111,15 +137,18 @@
     const sendImageBtn = document.getElementById("sendImage");
     const userCountDisplay = document.getElementById("user-count");
     const onlineUsersDropdown = document.getElementById("online-users-dropdown");
+    const typingIndicator = document.getElementById("typing-indicator");
 
+    // Username Setup
     let username = localStorage.getItem("username");
     if (!username) {
-      username = prompt("Enter your username:").trim();
+      username = prompt("Enter your username:")?.trim();
       if (!username) username = "Anonymous";
       localStorage.setItem("username", username);
     }
     sendButton.disabled = false;
 
+    // Util: format timestamp
     function formatTimestamp(timestamp) {
       const date = new Date(timestamp);
       const hours = date.getHours();
@@ -129,10 +158,12 @@
       return `${formattedHours}:${minutes} ${ampm}`;
     }
 
+    // Create message div with reactions & edit button
     function createMessageElement(key, val) {
       const div = document.createElement("div");
       div.classList.add("message");
       div.dataset.username = val.username;
+      div.dataset.key = key;
 
       const time = formatTimestamp(val.timestamp);
       const isMedia = val.message.startsWith('<img') || val.message.startsWith('<video') || val.message.startsWith('<audio');
@@ -147,6 +178,45 @@
       div.innerHTML = `[${time}] [${val.username}] `;
       div.appendChild(contentSpan);
 
+      // Reaction container
+      const reactionContainer = document.createElement("span");
+      reactionContainer.style.marginLeft = "10px";
+
+      // Supported reactions
+      const reactions = ['👍', '❤️', '😂', '😮', '😢', '👎'];
+
+      // Add reaction buttons
+      reactions.forEach(reaction => {
+        const btn = document.createElement("span");
+        btn.textContent = reaction;
+        btn.title = `React with ${reaction}`;
+        btn.className = "reaction-btn";
+
+        btn.addEventListener("click", () => {
+          addReaction(key, reaction);
+        });
+
+        reactionContainer.appendChild(btn);
+      });
+
+      div.appendChild(reactionContainer);
+
+      // Display existing reactions if any
+      if (val.reactions) {
+        const reactionsDisplay = document.createElement("span");
+        reactionsDisplay.style.marginLeft = "10px";
+        reactionsDisplay.style.color = "#0f0";
+        reactionsDisplay.style.fontSize = "0.9em";
+
+        let reactionsText = "";
+        for (const [emoji, users] of Object.entries(val.reactions)) {
+          reactionsText += `${emoji} ${Object.keys(users).length} `;
+        }
+        reactionsDisplay.textContent = reactionsText.trim();
+        div.appendChild(reactionsDisplay);
+      }
+
+      // Edit button only for own messages and if not media
       if (!isMedia && val.username === username) {
         const editBtn = document.createElement("button");
         editBtn.textContent = "Edit";
@@ -162,6 +232,7 @@
       return div;
     }
 
+    // Edit mode for message
     function enterEditMode(div, key, val, contentSpan, editBtn) {
       editBtn.style.display = "none";
       contentSpan.style.display = "none";
@@ -189,13 +260,11 @@
           alert("Message cannot be empty.");
           return;
         }
-
         const messageRef = ref(db, "messages/" + key);
         await update(messageRef, {
           message: newMessage,
           timestamp: Date.now()
         });
-
         contentSpan.textContent = newMessage;
         exitEditMode();
       });
@@ -213,14 +282,55 @@
       }
     }
 
-    onChildAdded(messagesRef, (data) => {
-      const val = data.val();
-      const key = data.key;
+    // Add reaction to message in Firebase
+    async function addReaction(messageKey, reaction) {
+      const reactionPath = `messages/${messageKey}/reactions/${reaction}/${username}`;
+      const reactionRef = ref(db, reactionPath);
+
+      // Toggle reaction presence: if already reacted, remove; else add
+      onValue(reactionRef, async snap => {
+        if (snap.exists()) {
+          await remove(reactionRef);
+        } else {
+          await set(reactionRef, true);
+        }
+      }, { onlyOnce: true });
+    }
+
+    // Scroll only if near bottom (within 100px)
+    function scrollIfNearBottom() {
+      const threshold = 100;
+      const position = chatBox.scrollTop + chatBox.clientHeight;
+      const height = chatBox.scrollHeight;
+      return (height - position) < threshold;
+    }
+
+    // Append new message, scroll conditionally
+    function appendMessage(key, val) {
       const div = createMessageElement(key, val);
       chatBox.appendChild(div);
-      chatBox.scrollTop = chatBox.scrollHeight;
+
+      if (scrollIfNearBottom()) {
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+    }
+
+    // Listen for new messages or updates
+    onChildAdded(messagesRef, (data) => {
+      appendMessage(data.key, data.val());
     });
 
+    // Listen for message changes (for edits or reactions)
+    onValue(messagesRef, (snapshot) => {
+      const allMessages = snapshot.val() || {};
+      // Clear chat box and re-render all messages
+      chatBox.innerHTML = "";
+      for (const [key, val] of Object.entries(allMessages)) {
+        appendMessage(key, val);
+      }
+    });
+
+    // Send new message
     chatForm.addEventListener("submit", (e) => {
       e.preventDefault();
       const message = messageInput.value.trim();
@@ -235,6 +345,7 @@
       chatForm.reset();
     });
 
+    // Change username
     changeUsernameBtn.addEventListener("click", () => {
       const newUsername = prompt("Enter a new username:");
       if (newUsername && newUsername.trim() !== "") {
@@ -245,10 +356,12 @@
       }
     });
 
+    // Send image button triggers file select
     sendImageBtn.addEventListener("click", () => {
       imageInput.click();
     });
 
+    // Handle media file upload and send
     imageInput.addEventListener("change", async () => {
       const file = imageInput.files[0];
       if (!file) return;
@@ -278,20 +391,21 @@
       reader.readAsDataURL(file);
     });
 
-    const connectionsRef = ref(db, "connections");
+    // Track user connections
     const connectedRef = ref(db, ".info/connected");
+    let myConnectionKey = null;
 
     onValue(connectedRef, (snap) => {
       if (snap.val() === true) {
-        const myConnection = push(connectionsRef);
-        set(myConnection, username);
-        onDisconnect(myConnection).remove();
+        myConnectionKey = push(connectionsRef);
+        set(myConnectionKey, username);
+        onDisconnect(myConnectionKey).remove();
       }
     });
 
+    // Update online user list & count
     onValue(connectionsRef, (snapshot) => {
       const connections = snapshot.val() || {};
-
       const seen = new Set();
       const usernames = Object.values(connections).filter(user => {
         return typeof user === 'string' && user.trim() !== '' && !seen.has(user) && seen.add(user);
@@ -307,7 +421,7 @@
       });
     });
 
-    // 🔴 Highlight selected user's messages
+    // Highlight selected user's messages
     onlineUsersDropdown.addEventListener("change", () => {
       const selectedUser = onlineUsersDropdown.value;
       document.querySelectorAll("#chat-box .message").forEach(msg => {
@@ -317,6 +431,52 @@
           msg.classList.remove("highlighted-user");
         }
       });
+    });
+
+    // TYPING INDICATOR LOGIC
+
+    // Reference for this user's typing status in Firebase
+    let myTypingRef = null;
+
+    function updateTypingStatus(isTyping) {
+      if (!myTypingRef) return;
+      if (isTyping) {
+        set(myTypingRef, true);
+      } else {
+        remove(myTypingRef);
+      }
+    }
+
+    onValue(connectedRef, (snap) => {
+      if (snap.val() === true && !myTypingRef) {
+        myTypingRef = ref(db, `typing/${username}`);
+        onDisconnect(myTypingRef).remove();
+      }
+    });
+
+    // Listen for other users typing
+    onValue(ref(db, "typing"), (snapshot) => {
+      const typingUsers = snapshot.val() || {};
+      // Exclude current user
+      const othersTyping = Object.keys(typingUsers).filter(u => u !== username);
+      if (othersTyping.length === 0) {
+        typingIndicator.textContent = "";
+      } else if (othersTyping.length === 1) {
+        typingIndicator.textContent = `${othersTyping[0]} is typing...`;
+      } else {
+        typingIndicator.textContent = `${othersTyping.join(", ")} are typing...`;
+      }
+    });
+
+    // Send typing status on input
+    let typingTimeout = null;
+    messageInput.addEventListener("input", () => {
+      if (!myTypingRef) return;
+      updateTypingStatus(true);
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(() => {
+        updateTypingStatus(false);
+      }, 1500);
     });
   </script>
 </body>
