@@ -95,7 +95,7 @@ audio.chat-audio {
   }
 }
 
-/* CRT Style Buttons - added */
+/* CRT Style for buttons and selects */
 button, .edit-btn, .save-btn, .cancel-btn, #change-username, #sendImage {
   font-family: monospace;
   font-size: 1em;
@@ -108,15 +108,15 @@ button, .edit-btn, .save-btn, .cancel-btn, #change-username, #sendImage {
     0 0 5px #0f0,
     0 0 10px #0f0,
     0 0 20px #0f0;
-  transition: background-color 0.2s, color 0.2s;
   user-select: none;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
 button:hover, .edit-btn:hover, .save-btn:hover, .cancel-btn:hover, #change-username:hover, #sendImage:hover {
   background-color: #0f0;
   color: black;
-  text-shadow: none;
   border-color: #0a0;
+  text-shadow: none;
 }
 
 /* CRT Style for select dropdowns */
@@ -128,16 +128,17 @@ select, #channel-select, #online-users-dropdown {
   border: 2px solid #0f0;
   padding: 4px 8px;
   cursor: pointer;
+  user-select: none;
   text-shadow:
     0 0 5px #0f0,
     0 0 10px #0f0,
     0 0 20px #0f0;
-  user-select: none;
-  transition: background-color 0.2s, color 0.2s;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
 select:hover, #channel-select:hover, #online-users-dropdown:hover {
   background-color: #0f0;
   color: black;
   border-color: #0a0;
+  text-shadow: none;
 }
