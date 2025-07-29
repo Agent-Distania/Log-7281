@@ -39,13 +39,23 @@ body {
 #chat-box {
   position: relative;
   height: 100%;
-  padding: 5px;
+  padding: 5px 5px 10px 10px; /* keep some side and bottom padding */
   overflow-y: scroll;
   white-space: pre-wrap;
   background-color: transparent;
   color: #0f0;
   font-family: monospace;
   z-index: 1;
+  box-sizing: border-box;   /* ensure padding included in height */
+  padding-top: 5px;          /* Reduced top padding to bring text up */
+  margin-top: -3px;          /* Slight negative margin to lift content */
+}
+
+/* Style each message container */
+#chat-box div {
+  line-height: 1.2;         /* tighter line spacing for dense text */
+  margin-top: 0;
+  padding-top: 0;
 }
 
 /* Form Inputs */
@@ -83,17 +93,4 @@ audio.chat-audio {
     background-position: 0 2px;
     opacity: 1;
   }
-}
-
-/* === Added tweaks to bring text up and tighten spacing === */
-
-#chat-box {
-  padding-top: 5px;       /* Reduce top padding to bring text up */
-  margin-top: -3px;       /* Slight negative margin to lift content */
-}
-
-#chat-box div {
-  line-height: 1.2;       /* Tighter line spacing for dense text */
-  margin-top: 0;
-  padding-top: 0;
 }
