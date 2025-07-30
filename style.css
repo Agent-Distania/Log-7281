@@ -1,6 +1,8 @@
-/* ===============================
-   General Terminal Look
-================================== */
+/* ========================= */
+/*      Terminal Styling     */
+/* ========================= */
+
+/* General Terminal Look */
 body {
   background-color: #111;
   color: #0f0;
@@ -8,9 +10,7 @@ body {
   padding: 20px;
 }
 
-/* ===============================
-   Chat Container Wrapper
-================================== */
+/* Chat Container Wrapper */
 #chat-container {
   position: relative;
   height: 500px;
@@ -21,9 +21,7 @@ body {
   box-sizing: border-box;
 }
 
-/* ===============================
-   Glitch Effect Background
-================================== */
+/* Glitch Effect Layer */
 #chat-bg {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -42,9 +40,7 @@ body {
   mix-blend-mode: screen;
 }
 
-/* ===============================
-   Chat Message Box
-================================== */
+/* Message Box Layer */
 #chat-box {
   position: relative;
   height: 100%;
@@ -58,13 +54,16 @@ body {
   box-sizing: border-box;
   padding-top: 5px;
   margin-top: -3px;
-
-  /* CRT-style scrollbar (Firefox) */
-  scrollbar-color: #0f0 #000;
-  scrollbar-width: thin;
 }
 
-/* CRT-style scrollbar (WebKit) */
+/* Chat Message Styling */
+#chat-box div {
+  line-height: 1.2;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+/* CRT Style Scrollbar */
 #chat-box::-webkit-scrollbar {
   width: 10px;
 }
@@ -72,79 +71,29 @@ body {
   background: #000;
 }
 #chat-box::-webkit-scrollbar-thumb {
-  background-color: #0f0;
-  border: 2px solid #000;
+  background: #0f0;
+  border-radius: 5px;
   box-shadow: 0 0 5px #0f0;
 }
+#chat-box::-webkit-scrollbar-thumb:hover {
+  background: #0d0;
+}
 
-/* ===============================
-   Typing Indicator Pulse
-================================== */
+/* ========================= */
+/*     Typing Indicator      */
+/* ========================= */
 .typing-indicator {
-  color: #0f0;
+  margin-top: 5px;
   font-style: italic;
-  animation: typingPulse 1s infinite;
+  color: #0f0;
+  animation: blinkTyping 1s steps(1) infinite;
 }
 
-@keyframes typingPulse {
-  0%, 100% {
-    opacity: 0.4;
-  }
-  50% {
-    opacity: 1;
-  }
+@keyframes blinkTyping {
+  50% { opacity: 0.2; }
 }
 
-/* ===============================
-   Message Container Style
-================================== */
-#chat-box div {
-  line-height: 1.2;
-  margin-top: 0;
-  padding-top: 0;
-}
-
-/* ===============================
-   Input Form Layout
-================================== */
-#chat-form {
-  display: flex;
-  gap: 10px;
-}
-
-/* Add spacing between username and channel menu */
-#change-username {
-  margin-bottom: 10px;
-  display: inline-block;
-}
-
-/* ===============================
-   Input and Button Style
-================================== */
-#chat-form input,
-#chat-form button {
-  font-family: monospace;
-}
-
-/* ===============================
-   Media Embeds
-================================== */
-img.chat-image {
-  max-width: 200px;
-  display: block;
-  margin-top: 5px;
-}
-
-video.chat-video,
-audio.chat-audio {
-  max-width: 200px;
-  display: block;
-  margin-top: 5px;
-}
-
-/* ===============================
-   Glitch Line Animation
-================================== */
+/* Glitch Animation */
 @keyframes glitchLines {
   0%, 100% {
     background-position: 0 0;
@@ -156,9 +105,57 @@ audio.chat-audio {
   }
 }
 
-/* ===============================
-   CRT-Style Buttons
-================================== */
+/* ========================= */
+/*   Form and Input Fields   */
+/* ========================= */
+
+/* Chat Form Layout */
+#chat-form {
+  display: flex;
+  gap: 10px;
+}
+
+/* CRT Input Box */
+#chat-form input {
+  font-family: monospace;
+  background-color: #000;
+  color: #0f0;
+  border: 2px solid #0f0;
+  padding: 6px 10px;
+  box-shadow:
+    0 0 5px #0f0,
+    0 0 10px #0f0;
+  caret-color: #0f0;
+}
+
+/* Placeholder */
+#chat-form input::placeholder {
+  color: #0f05;
+  font-style: italic;
+}
+
+/* Input focus glow */
+#chat-form input:focus {
+  outline: none;
+  box-shadow:
+    0 0 8px #0f0,
+    0 0 15px #0f0;
+}
+
+/* Media Styling */
+img.chat-image,
+video.chat-video,
+audio.chat-audio {
+  max-width: 200px;
+  display: block;
+  margin-top: 5px;
+}
+
+/* ========================= */
+/*  CRT Buttons and Selects  */
+/* ========================= */
+
+/* General CRT Button Styles */
 button, .edit-btn, .save-btn, .cancel-btn, #change-username, #sendImage {
   font-family: monospace;
   font-size: 1em;
@@ -173,10 +170,18 @@ button, .edit-btn, .save-btn, .cancel-btn, #change-username, #sendImage {
     0 0 20px #0f0;
   user-select: none;
   transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  -webkit-appearance: none;
+  -moz-appearance: none;
   appearance: none;
 }
 
-/* Button Focus & Glow */
+/* Add spacing between username and channel select */
+#change-username {
+  margin-bottom: 10px;
+  display: inline-block;
+}
+
+/* Button Focus */
 button:focus, .edit-btn:focus, .save-btn:focus, .cancel-btn:focus, #change-username:focus, #sendImage:focus {
   outline: none;
   box-shadow:
@@ -193,9 +198,7 @@ button:hover, .edit-btn:hover, .save-btn:hover, .cancel-btn:hover, #change-usern
   text-shadow: none;
 }
 
-/* ===============================
-   CRT-Style Dropdowns
-================================== */
+/* CRT Select Dropdowns */
 select, #channel-select, #online-users-dropdown {
   font-family: monospace;
   font-size: 1em;
@@ -210,10 +213,12 @@ select, #channel-select, #online-users-dropdown {
     0 0 10px #0f0,
     0 0 20px #0f0;
   transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  -webkit-appearance: none;
+  -moz-appearance: none;
   appearance: none;
 }
 
-/* Dropdown Focus */
+/* Select Focus */
 select:focus, #channel-select:focus, #online-users-dropdown:focus {
   outline: none;
   box-shadow:
@@ -222,7 +227,7 @@ select:focus, #channel-select:focus, #online-users-dropdown:focus {
     0 0 20px #0f0;
 }
 
-/* Dropdown Hover */
+/* Select Hover */
 select:hover, #channel-select:hover, #online-users-dropdown:hover {
   background-color: #0f0;
   color: black;
@@ -230,7 +235,7 @@ select:hover, #channel-select:hover, #online-users-dropdown:hover {
   text-shadow: none;
 }
 
-/* Custom Dropdown Arrow */
+/* CRT Dropdown Arrow */
 select::-ms-expand {
   display: none;
 }
