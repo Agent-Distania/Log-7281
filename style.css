@@ -3,6 +3,12 @@
 /* ========================= */
 
 /* General Terminal Look */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 body {
   background-color: #000; /* pure black for CRT */
   color: #0f0;
@@ -24,14 +30,11 @@ body {
   background-color: #000;
   box-sizing: border-box;
 
-  /* Set overflow hidden so child scroll works properly */
   overflow: hidden;
 
-  /* Flexbox container */
   display: flex;
   flex-direction: column;
 
-  /* Power On Animation */
   animation: powerOn 1.5s ease forwards;
 }
 
@@ -55,7 +58,6 @@ body {
 }
 */
 
-/* Subtle Glitch Line Overlay */
 #chat-bg {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -68,38 +70,36 @@ body {
       transparent 1px,
       transparent 3px
     );
-  background-position: 0 1px; /* offset by 1px for no alignment overlap */
+  background-position: 0 1px;
   animation: glitchLines 1s infinite linear;
   z-index: 0;
-  filter: none; /* removed drop shadow */
-  mix-blend-mode: normal; /* removed screen blend */
+  filter: none;
+  mix-blend-mode: normal;
 }
 
 #chat-box {
-  /* Use flex-grow to fill container */
   flex-grow: 1;
-  padding: 5px 10px;
+  padding: 5px 10px 10px 10px; /* Added bottom padding for scroll bottom comfort */
   overflow-y: auto;
   white-space: pre-wrap;
   background-color: transparent;
   color: #0f0;
   font-family: monospace;
   box-sizing: border-box;
-  margin-top: 0; /* remove negative margin */
+  margin: 0;
   position: relative;
 }
 
 #chat-box div {
   line-height: 1.2;
-  margin: 0; /* remove margins */
-  padding: 0; /* remove padding */
+  margin: 0;
+  padding: 0;
 }
 
-/* Highlight selected user's messages */
 .highlighted-user {
   background-color: rgba(0, 255, 0, 0.1);
   border-left: 3px solid #0f0;
-  padding-left: 7px; /* Add some padding so text doesn't stick to border */
+  padding-left: 7px;
 }
 
 /* CRT Style Scrollbar */
