@@ -24,13 +24,12 @@ body {
   background-color: #000;
   box-sizing: border-box;
 
-  /* Remove overflow hidden to allow child scrolling */
-  overflow: visible;
-
-  /* Optionally use flexbox */
+  /* ✅ Allow internal elements to grow and align */
   display: flex;
   flex-direction: column;
-}
+
+  /* ✅ Prevent hidden overflow from clipping children like typing indicator */
+  overflow: hidden;
 
   /* Power On Animation */
   animation: powerOn 1.5s ease forwards;
@@ -74,7 +73,7 @@ body {
 }
 
 #chat-box {
-  /* Use flex-grow to fill container */
+  /* ✅ Fill vertical space and allow scroll */
   flex-grow: 1;
   padding: 5px 10px;
   overflow-y: auto;
@@ -83,7 +82,7 @@ body {
   color: #0f0;
   font-family: monospace;
   box-sizing: border-box;
-  margin-top: 0; /* remove negative margin */
+  margin-top: 0;
   position: relative;
 }
 
@@ -119,10 +118,14 @@ body {
 /* ========================= */
 /*     Typing Indicator      */
 /* ========================= */
+/* ✅ Keep the typing indicator below chat content */
 .typing-indicator {
-  margin-top: 5px;
+  padding: 4px 10px;
   font-style: italic;
   color: #0f0;
+  font-size: 0.9em;
+  border-top: 1px solid #0f0;
+  background-color: black;
   animation: blinkTyping 1s steps(1) infinite;
 }
 
