@@ -3,12 +3,6 @@
 /* ========================= */
 
 /* General Terminal Look */
-html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-}
-
 body {
   background-color: #000; /* pure black for CRT */
   color: #0f0;
@@ -23,19 +17,43 @@ body {
 }
 
 #chat-container {
+  position: relative;
   height: 500px;
+  margin-bottom: 10px;
   border: 1px solid #0f0;
   background-color: #000;
+  box-sizing: border-box;
+
+  /* Remove overflow hidden to allow child scrolling */
+  overflow: visible;
+
+  /* Optionally use flexbox */
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  position: relative;
-  padding: 0;
-  margin-bottom: 10px;
+}
 
+  /* Power On Animation */
   animation: powerOn 1.5s ease forwards;
 }
 
+/* Optional: Scanline wipe overlay for power-on */
+#chat-container::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 255, 0, 0.05) 0,
+    rgba(0, 255, 0, 0.05) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  pointer-events: none;
+  animation: scanlineWipe 1.5s ease forwards;
+  z-index: 10;
+}
+
+/* Subtle Glitch Line Overlay */
 #chat-bg {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -48,34 +66,38 @@ body {
       transparent 1px,
       transparent 3px
     );
-  background-position: 0 1px;
+  background-position: 0 1px; /* offset by 1px for no alignment overlap */
   animation: glitchLines 1s infinite linear;
   z-index: 0;
+  filter: none; /* removed drop shadow */
+  mix-blend-mode: normal; /* removed screen blend */
 }
 
 #chat-box {
-  flex: 1 1 auto;
+  /* Use flex-grow to fill container */
+  flex-grow: 1;
+  padding: 5px 10px;
   overflow-y: auto;
-  padding: 10px;
-  margin: 0;
-  box-sizing: border-box;
   white-space: pre-wrap;
+  background-color: transparent;
   color: #0f0;
   font-family: monospace;
+  box-sizing: border-box;
+  margin-top: 0; /* remove negative margin */
   position: relative;
-  z-index: 1;
 }
 
 #chat-box div {
   line-height: 1.2;
-  margin: 0;  /* No vertical margin */
-  padding: 0;
+  margin: 0; /* remove margins */
+  padding: 0; /* remove padding */
 }
 
+/* Highlight selected user's messages */
 .highlighted-user {
   background-color: rgba(0, 255, 0, 0.1);
   border-left: 3px solid #0f0;
-  padding-left: 7px;
+  padding-left: 7px; /* Add some padding so text doesn't stick to border */
 }
 
 /* CRT Style Scrollbar */
@@ -142,6 +164,16 @@ body {
   100% {
     opacity: 1;
     filter: brightness(1) contrast(1);
+  }
+}
+
+/* Scanline Wipe Animation */
+@keyframes scanlineWipe {
+  0% {
+    clip-path: inset(100% 0 0 0);
+  }
+  100% {
+    clip-path: inset(0 0 0 0);
   }
 }
 
