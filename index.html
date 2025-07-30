@@ -14,207 +14,65 @@
       padding: 20px;
     }
 
-    /* ========== CHAT CONTAINER (Wrapper for glitch bg + messages) ========== */
-    #chat-container {
-      position: relative;
-      height: 500px;
-      margin-bottom: 10px;
-      border: 1px solid #0f0;
-      overflow: hidden;
-      background-color: #000;
-      box-sizing: border-box;
-    }
-
-    /* ========== GLITCH EFFECT BACKGROUND LAYER ========== */
-    #chat-bg {
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      pointer-events: none;
-      background:
-        repeating-linear-gradient(
-          to bottom,
-          rgba(0,255,0,0.15),
-          rgba(0,255,0,0.15) 2px,
-          transparent 2px,
-          transparent 4px
-        );
-      animation: glitchLines 1s infinite linear;
-      z-index: 0;
-      filter: drop-shadow(0 0 2px #0f0);
-      mix-blend-mode: screen;
-    }
-
-    /* ========== SUBTLE BACKGROUND NOISE OVERLAY ========== */
-    #chat-noise {
-      pointer-events: none;
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background-image: url('https://www.transparenttextures.com/patterns/asfalt-light.png');
-      opacity: 0.03;
-      animation: noiseMove 10s linear infinite;
-      z-index: 0.5; /* Between glitch bg (0) and messages (1) */
-      mix-blend-mode: screen;
-    }
-
-    @keyframes noiseMove {
-      0% {
-        background-position: 0 0;
-      }
-      100% {
-        background-position: 100px 100px;
-      }
-    }
-
-    /* ========== CHAT BOX (Messages display area) ========== */
-    #chat-box {
-      position: relative;
-      height: 100%;
-      padding: 5px 10px 20px 10px; /* padding with extra bottom space */
-      overflow-y: auto;
-      white-space: pre-wrap;
-      background-color: transparent;
+    /* ========== CRT LOGIN STYLES ========== */
+    #crt-login {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: black;
       color: #0f0;
-      font-family: monospace;
-      z-index: 1; /* Above glitch bg and noise */
-      box-sizing: border-box;
-      padding-top: 5px;
-      margin-top: -3px; /* Pull content slightly up */
-    }
-
-    /* Style each message container inside chat box */
-    #chat-box div {
-      line-height: 1.2;
-      margin-top: 0;
-      padding-top: 0;
-    }
-
-    /* ========== FORM AND INPUTS ========== */
-    #chat-form {
       display: flex;
-      gap: 10px;
-    }
-
-    #chat-form input,
-    #chat-form button {
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       font-family: monospace;
+      z-index: 9999;
+      transition: opacity 2s ease;
+      overflow: hidden;
+      animation: crtFlickerScreen 1.2s ease-in;
     }
 
-    /* ========== MEDIA ELEMENTS STYLING (images, video, audio) ========== */
-    img.chat-image {
-      max-width: 200px;
-      display: block;
-      margin-top: 5px;
+    #crt-boot-text {
+      font-size: 1.5em;
+      text-shadow: 0 0 10px #0f0, 0 0 20px #0f0;
+      margin-bottom: 20px;
+      opacity: 0;
+      animation: bootTextFlicker 3s forwards;
     }
 
-    video.chat-video,
-    audio.chat-audio {
-      max-width: 200px;
-      display: block;
-      margin-top: 5px;
-    }
-
-    /* ========== GLITCH ANIMATION KEYFRAMES ========== */
-    @keyframes glitchLines {
-      0%, 100% {
-        background-position: 0 0;
-        opacity: 0.7;
-      }
-      50% {
-        background-position: 0 2px;
-        opacity: 1;
-      }
-    }
-
-    /* ========== BUTTONS & SELECTS (CRT Style) ========== */
-    button, .edit-btn, .save-btn, .cancel-btn, #change-username, #sendImage {
-      font-family: monospace;
-      font-size: 1em;
+    #power-button {
+      font-size: 1.2em;
       background-color: black;
-      color: #0f0;
       border: 2px solid #0f0;
-      padding: 4px 8px;
+      padding: 10px 20px;
+      color: #0f0;
       cursor: pointer;
-      text-shadow:
-        0 0 5px #0f0,
-        0 0 10px #0f0,
-        0 0 20px #0f0;
-      user-select: none;
-      transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      appearance: none;
+      text-shadow: 0 0 5px #0f0, 0 0 15px #0f0;
     }
 
-    /* Focus glow for buttons and selects */
-    button:focus, .edit-btn:focus, .save-btn:focus, .cancel-btn:focus, #change-username:focus, #sendImage:focus {
-      outline: none;
-      box-shadow:
-        0 0 5px #0f0,
-        0 0 10px #0f0,
-        0 0 20px #0f0;
-    }
-
-    /* Hover effect for buttons */
-    button:hover, .edit-btn:hover, .save-btn:hover, .cancel-btn:hover, #change-username:hover, #sendImage:hover {
+    #power-button:hover {
       background-color: #0f0;
       color: black;
-      border-color: #0a0;
       text-shadow: none;
     }
 
-    /* ========== SELECT DROPDOWNS ========== */
-    select, #channel-select, #online-users-dropdown {
-      font-family: monospace;
-      font-size: 1em;
-      background-color: black;
-      color: #0f0;
-      border: 2px solid #0f0;
-      padding: 4px 8px;
-      cursor: pointer;
-      user-select: none;
-      text-shadow:
-        0 0 5px #0f0,
-        0 0 10px #0f0,
-        0 0 20px #0f0;
-      transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      appearance: none;
+    @keyframes bootTextFlicker {
+      0% { opacity: 0; }
+      10% { opacity: 1; }
+      20% { opacity: 0.2; }
+      40% { opacity: 1; }
+      60% { opacity: 0.4; }
+      80% { opacity: 1; }
+      100% { opacity: 1; }
     }
 
-    /* Focus glow for selects */
-    select:focus, #channel-select:focus, #online-users-dropdown:focus {
-      outline: none;
-      box-shadow:
-        0 0 5px #0f0,
-        0 0 10px #0f0,
-        0 0 20px #0f0;
-    }
-
-    /* Hover effect for selects */
-    select:hover, #channel-select:hover, #online-users-dropdown:hover {
-      background-color: #0f0;
-      color: black;
-      border-color: #0a0;
-      text-shadow: none;
-    }
-
-    /* Custom dropdown arrow for selects */
-    select::-ms-expand {
-      display: none;
-    }
-    select {
-      background-image:
-        linear-gradient(45deg, transparent 50%, #0f0 50%),
-        linear-gradient(135deg, #0f0 50%, transparent 50%),
-        linear-gradient(to right, black, black);
-      background-position:
-        calc(100% - 20px) calc(1em + 2px),
-        calc(100% - 15px) calc(1em + 2px),
-        100% 0;
-      background-size: 5px 5px, 5px 5px, 2.5em 2.5em;
-      background-repeat: no-repeat;
-      padding-right: 30px;
+    @keyframes crtFlickerScreen {
+      0% { opacity: 0; transform: scaleY(0.1); }
+      20% { opacity: 1; transform: scaleY(1.2); }
+      40% { transform: scaleY(0.9); }
+      60% { transform: scaleY(1.05); }
+      80% { transform: scaleY(0.98); }
+      100% { opacity: 1; transform: scaleY(1); }
     }
 
     /* ========== ONLINE USERS DROPDOWN CONTAINER (TOP RIGHT) ========== */
@@ -227,9 +85,203 @@
       padding: 4px 8px;
       z-index: 100;
     }
+
+    /* ========== CHAT STYLES RESTORED ========== */
+    #chat-container {
+      position: relative;
+      width: 100%;
+      max-width: 800px;
+      margin: 20px auto;
+      border: 1px solid #0f0;
+      background: #000;
+      overflow: hidden;
+      font-size: 14px;
+      line-height: 1.4em;
+    }
+
+    #chat-bg {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(45deg, #0f0 25%, transparent 25%, transparent 75%, #0f0 75%), 
+                  linear-gradient(45deg, #0f0 25%, transparent 25%, transparent 75%, #0f0 75%);
+      background-size: 40px 40px;
+      background-position: 0 0, 20px 20px;
+      opacity: 0.1;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    #chat-noise {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAYAAjCB0C8AAAAASUVORK5CYII=') repeat;
+      opacity: 0.04;
+      pointer-events: none;
+      z-index: 2;
+      animation: noiseAnim 1s steps(10) infinite;
+    }
+
+    @keyframes noiseAnim {
+      0%, 100% { background-position: 0 0; }
+      50% { background-position: 100% 100%; }
+    }
+
+    #chat-box {
+      position: relative;
+      padding: 10px;
+      max-height: 400px;
+      overflow-y: auto;
+      z-index: 3;
+      color: #0f0;
+      font-family: monospace;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      scrollbar-width: thin;
+      scrollbar-color: #0f0 transparent;
+    }
+
+    #chat-box::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    #chat-box::-webkit-scrollbar-thumb {
+      background-color: #0f0;
+      border-radius: 4px;
+    }
+
+    .message {
+      margin-bottom: 8px;
+      padding: 2px 4px;
+      border-radius: 3px;
+      cursor: default;
+      position: relative;
+    }
+
+    .message.highlighted-user {
+      background-color: rgba(255, 0, 0, 0.3);
+      color: #f00;
+      font-weight: bold;
+    }
+
+    .chat-image {
+      max-width: 200px;
+      max-height: 150px;
+      border: 1px solid #0f0;
+      border-radius: 4px;
+      display: block;
+      margin-top: 2px;
+    }
+
+    .chat-video {
+      max-width: 300px;
+      border: 1px solid #0f0;
+      border-radius: 4px;
+      margin-top: 2px;
+    }
+
+    .chat-audio {
+      max-width: 200px;
+      margin-top: 2px;
+    }
+
+    .edit-btn, .save-btn, .cancel-btn {
+      background: transparent;
+      border: 1px solid #0f0;
+      color: #0f0;
+      cursor: pointer;
+      font-size: 0.8em;
+      margin-left: 6px;
+      padding: 1px 6px;
+      border-radius: 3px;
+      user-select: none;
+    }
+
+    .edit-btn:hover, .save-btn:hover, .cancel-btn:hover {
+      background: #0f0;
+      color: black;
+    }
+
+    .edit-input {
+      background: black;
+      border: 1px solid #0f0;
+      color: #0f0;
+      font-family: monospace;
+      font-size: 1em;
+      padding: 2px 4px;
+      margin-left: 6px;
+      width: 60%;
+      border-radius: 3px;
+    }
+
+    /* ========== MESSAGE INPUT FORM STYLES ========== */
+    #chat-form {
+      margin: 10px auto;
+      max-width: 800px;
+      display: flex;
+      gap: 8px;
+    }
+
+    #chat-form input[type="text"] {
+      flex-grow: 1;
+      background: black;
+      border: 2px solid #0f0;
+      color: #0f0;
+      font-family: monospace;
+      font-size: 1em;
+      padding: 6px 10px;
+      border-radius: 4px;
+      caret-color: #0f0;
+      outline-offset: 2px;
+      outline-color: #0f0;
+    }
+
+    #chat-form input[type="text"]::placeholder {
+      color: #0f0;
+      opacity: 0.6;
+    }
+
+    #chat-form button {
+      background: black;
+      border: 2px solid #0f0;
+      color: #0f0;
+      font-family: monospace;
+      font-size: 1em;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    #chat-form button:hover {
+      background: #0f0;
+      color: black;
+    }
+
+    /* ========== TYPING INDICATOR ANIMATION ========== */
+    #typing-indicator {
+      font-style: italic;
+      margin-top: 6px;
+      color: #0f0;
+      opacity: 0.7;
+      font-size: 0.9em;
+      font-family: monospace;
+      animation: blinkTyping 1.4s infinite;
+    }
+
+    @keyframes blinkTyping {
+      0%, 100% { opacity: 0.7; }
+      50% { opacity: 0.3; }
+    }
   </style>
 </head>
 <body>
+  <!-- ========== CRT LOGIN SCREEN ========== -->
+  <div id="crt-login">
+    <div id="crt-boot-text">BOOTING SYSTEM...</div>
+    <button id="power-button">[ ON ]</button>
+  </div>
+
   <!-- ========== PAGE TITLE & USER INFO ========== -->
   <h1>The Underground</h1>
   <p id="user-count">Users online: 0</p>
@@ -254,16 +306,17 @@
     </select>
   </div>
 
-  <!-- ========== CHAT AREA WITH GLITCH BACKGROUND AND NOISE ========== -->
+  <!-- ========== CHAT AREA ========== -->
   <div id="chat-container">
-    <div id="chat-bg"></div>       <!-- Glitch lines background -->
-    <div id="chat-noise"></div>    <!-- Subtle noise overlay -->
-    <div id="chat-box"></div>      <!-- Messages container -->
+    <div id="chat-bg"></div>
+    <div id="chat-noise"></div>
+    <div id="chat-box"></div>
+    <div id="typing-indicator" style="display:none;">Someone is typing...</div>
   </div>
 
   <!-- ========== MESSAGE INPUT FORM ========== -->
   <form id="chat-form">
-    <input type="text" id="message" placeholder="Enter message" required />
+    <input type="text" id="message" placeholder="Enter message" autocomplete="off" required />
     <button type="submit">Send</button>
     <input type="file" id="imageInput" accept="image/*,video/mp4,audio/mpeg" style="display: none;" />
     <button type="button" id="sendImage">Send Image</button>
@@ -280,10 +333,10 @@
       set,
       onValue,
       onDisconnect,
-      update
+      update,
+      onChildChanged,
     } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyCEnayZ7B7VYH_55IKjdRGriey5ffdPqRA",
       authDomain: "log-7281.firebaseapp.com",
@@ -294,11 +347,9 @@
       appId: "1:997557129411:web:ef247b0fff165df2ef9276",
     };
 
-    // Initialize Firebase app and database
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // DOM elements
     const chatBox = document.getElementById("chat-box");
     const chatForm = document.getElementById("chat-form");
     const messageInput = document.getElementById("message");
@@ -308,13 +359,12 @@
     const userDropdown = document.getElementById("online-users-dropdown");
     const changeUsernameBtn = document.getElementById("change-username");
     const channelSelect = document.getElementById("channel-select");
+    const typingIndicator = document.getElementById("typing-indicator");
 
-    // Load or ask for username
     let username = localStorage.getItem("username") || prompt("Enter your username:");
     if (!username) username = "Anonymous";
     localStorage.setItem("username", username);
 
-    // Change username button handler
     changeUsernameBtn.addEventListener("click", () => {
       const newName = prompt("Enter new username:", username);
       if (newName && newName.trim() !== "") {
@@ -323,7 +373,6 @@
       }
     });
 
-    // Channel management
     let currentChannel = localStorage.getItem("channel") || "general";
     channelSelect.value = currentChannel;
     localStorage.setItem("channel", currentChannel);
@@ -335,12 +384,10 @@
     let messagesRef = getMessagesRef(currentChannel);
     let unsubscribeMessages = null;
 
-    // Clear chat messages UI
     function clearMessages() {
       chatBox.innerHTML = "";
     }
 
-    // Format timestamp as hh:mm AM/PM
     function formatTimestamp(ts) {
       const date = new Date(ts);
       const h = date.getHours();
@@ -350,7 +397,6 @@
       return `${hour12}:${m} ${ampm}`;
     }
 
-    // Create a message element with support for editing and media
     function createMessageElement(key, val) {
       const div = document.createElement("div");
       div.className = "message";
@@ -378,7 +424,6 @@
 
       div.innerHTML = `[${timeStr}] <strong>${val.username}:</strong> <span class="msg-content">${messageContent}</span>`;
 
-      // Add edit button if own text message
       if (val.username === username && !val.media) {
         const editBtn = document.createElement("button");
         editBtn.className = "edit-btn";
@@ -387,10 +432,26 @@
         div.appendChild(editBtn);
       }
 
+      // Add reactions container
+      const reactionsContainer = document.createElement("span");
+      reactionsContainer.className = "reactions-container";
+      if (val.reactions) {
+        for (const [reaction, users] of Object.entries(val.reactions)) {
+          const count = Object.keys(users).length;
+          if (count > 0) {
+            const reactionBtn = document.createElement("button");
+            reactionBtn.className = "reaction-btn";
+            reactionBtn.textContent = `${reaction} ${count}`;
+            reactionBtn.onclick = () => toggleReaction(key, reaction);
+            reactionsContainer.appendChild(reactionBtn);
+          }
+        }
+      }
+      div.appendChild(reactionsContainer);
+
       return div;
     }
 
-    // Enter edit mode for a message
     function enterEditMode(div, key, val) {
       const contentSpan = div.querySelector(".msg-content");
       const editBtn = div.querySelector(".edit-btn");
@@ -442,38 +503,62 @@
       }
     }
 
-    // Start listening to messages on a channel
+    function toggleReaction(messageKey, reaction) {
+      const userId = username;
+      const reactionRef = ref(db, `channels/${currentChannel}/messages/${messageKey}/reactions/${reaction}/${userId}`);
+      onValue(reactionRef, (snapshot) => {
+        if (snapshot.exists()) {
+          // Remove reaction
+          update(reactionRef, null);
+        } else {
+          // Add reaction
+          set(reactionRef, true);
+        }
+      }, { onlyOnce: true });
+    }
+
     function startListeningToChannel(channel) {
       if (unsubscribeMessages) unsubscribeMessages();
       clearMessages();
       messagesRef = getMessagesRef(channel);
 
-      unsubscribeMessages = onChildAdded(messagesRef, (data) => {
+      onChildAdded(messagesRef, (data) => {
         const val = data.val();
         const key = data.key;
         const div = createMessageElement(key, val);
         chatBox.appendChild(div);
-        const nearBottom = chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight < 100;
-        if (nearBottom) chatBox.scrollTop = chatBox.scrollHeight;
+        scrollIfNearBottom();
       });
+
+      onChildChanged(messagesRef, (data) => {
+        const key = data.key;
+        const val = data.val();
+        const msgDiv = chatBox.querySelector(`div.message[data-id='${key}']`);
+        if (msgDiv) {
+          const newDiv = createMessageElement(key, val);
+          chatBox.replaceChild(newDiv, msgDiv);
+        }
+      });
+    }
+
+    function scrollIfNearBottom() {
+      const nearBottom = chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight < 100;
+      if (nearBottom) chatBox.scrollTop = chatBox.scrollHeight;
     }
 
     startListeningToChannel(currentChannel);
 
-    // Handle channel change
     channelSelect.addEventListener("change", () => {
       currentChannel = channelSelect.value;
       localStorage.setItem("channel", currentChannel);
       startListeningToChannel(currentChannel);
     });
 
-    // Manage online users presence in Firebase
     const connectionsRef = ref(db, "connections");
     const userRef = push(connectionsRef);
     set(userRef, username);
     onDisconnect(userRef).remove();
 
-    // Update online users count and dropdown
     onValue(connectionsRef, (snapshot) => {
       const users = snapshot.val() || {};
       userCount.innerText = `Users online: ${Object.keys(users).length}`;
@@ -487,7 +572,6 @@
       }
     });
 
-    // Highlight messages by selected user
     userDropdown.addEventListener("change", () => {
       const selectedUser = userDropdown.value;
       document.querySelectorAll(".message").forEach(msg => {
@@ -499,7 +583,39 @@
       });
     });
 
-    // Message form submission
+    // Typing indicator logic
+    let typingTimeout;
+    const typingRef = ref(db, `channels/${currentChannel}/typing/${username}`);
+
+    messageInput.addEventListener("input", () => {
+      set(typingRef, true);
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(() => {
+        set(typingRef, null);
+      }, 1500);
+    });
+
+    function listenForTyping(channel) {
+      const typingChannelRef = ref(db, `channels/${channel}/typing`);
+      onValue(typingChannelRef, (snapshot) => {
+        const typingUsers = snapshot.val() || {};
+        const othersTyping = Object.keys(typingUsers).filter(u => u !== username);
+        if (othersTyping.length > 0) {
+          typingIndicator.style.display = "block";
+          typingIndicator.textContent = `${othersTyping.join(", ")} is typing...`;
+        } else {
+          typingIndicator.style.display = "none";
+        }
+      });
+    }
+
+    listenForTyping(currentChannel);
+
+    channelSelect.addEventListener("change", () => {
+      set(typingRef, null);
+      listenForTyping(channelSelect.value);
+    });
+
     chatForm.addEventListener("submit", (e) => {
       e.preventDefault();
       const text = messageInput.value.trim();
@@ -510,18 +626,16 @@
         timestamp: Date.now(),
       });
       messageInput.value = "";
+      set(typingRef, null);
     });
 
-    // Send Image button opens file dialog
     sendImageBtn.addEventListener("click", () => {
       imageInput.click();
     });
 
-    // Handle image/video/audio file upload
     imageInput.addEventListener("change", async () => {
       const file = imageInput.files[0];
       if (!file) return;
-      // For simplicity, upload files as base64 data URLs (not recommended for large files)
       const reader = new FileReader();
       reader.onload = () => {
         push(messagesRef, {
@@ -533,6 +647,20 @@
       };
       reader.readAsDataURL(file);
       imageInput.value = "";
+    });
+
+    // CRT LOGIN ANIMATION LOGIC
+    const loginOverlay = document.getElementById("crt-login");
+    const powerButton = document.getElementById("power-button");
+
+    powerButton.addEventListener("click", () => {
+      document.getElementById("crt-boot-text").textContent = "SYSTEM ONLINE...";
+      setTimeout(() => {
+        loginOverlay.style.opacity = "0";
+        setTimeout(() => {
+          loginOverlay.style.display = "none";
+        }, 2000);
+      }, 1500);
     });
   </script>
 </body>
