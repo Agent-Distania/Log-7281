@@ -29,7 +29,7 @@ body {
 
   /* Power On Animation */
   animation: powerOn 1.5s ease forwards;
-  position: relative; /* Needed for ::before overlay */
+  position: relative; /* Required for ::before overlay */
 }
 
 /* Optional: Scanline wipe overlay for power-on */
@@ -76,10 +76,11 @@ body {
   font-family: monospace;
   box-sizing: border-box;
 
-  /* ✅ This ensures height matches content until 400px, then scrolls */
-  height: auto;
-  max-height: 400px;
-  overflow-y: auto;
+  /* ✅ Fixed logic */
+  height: auto;              /* Grow with content */
+  max-height: 400px;         /* Limit height */
+  overflow-y: auto;          /* Scroll only when needed */
+  flex-shrink: 0;            /* Prevent stretching */
 }
 
 #chat-box div {
