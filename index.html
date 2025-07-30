@@ -44,6 +44,27 @@
       mix-blend-mode: screen;
     }
 
+    /* ========== SUBTLE BACKGROUND NOISE OVERLAY ========== */
+    #chat-noise {
+      pointer-events: none;
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: url('https://www.transparenttextures.com/patterns/asfalt-light.png');
+      opacity: 0.03;
+      animation: noiseMove 10s linear infinite;
+      z-index: 0.5; /* Between glitch bg (0) and messages (1) */
+      mix-blend-mode: screen;
+    }
+
+    @keyframes noiseMove {
+      0% {
+        background-position: 0 0;
+      }
+      100% {
+        background-position: 100px 100px;
+      }
+    }
+
     /* ========== CHAT BOX (Messages display area) ========== */
     #chat-box {
       position: relative;
@@ -54,7 +75,7 @@
       background-color: transparent;
       color: #0f0;
       font-family: monospace;
-      z-index: 1; /* Above glitch bg */
+      z-index: 1; /* Above glitch bg and noise */
       box-sizing: border-box;
       padding-top: 5px;
       margin-top: -3px; /* Pull content slightly up */
@@ -233,10 +254,11 @@
     </select>
   </div>
 
-  <!-- ========== CHAT AREA WITH GLITCH BACKGROUND ========== -->
+  <!-- ========== CHAT AREA WITH GLITCH BACKGROUND AND NOISE ========== -->
   <div id="chat-container">
-    <div id="chat-bg"></div>   <!-- Glitch lines background -->
-    <div id="chat-box"></div>  <!-- Messages container -->
+    <div id="chat-bg"></div>       <!-- Glitch lines background -->
+    <div id="chat-noise"></div>    <!-- Subtle noise overlay -->
+    <div id="chat-box"></div>      <!-- Messages container -->
   </div>
 
   <!-- ========== MESSAGE INPUT FORM ========== -->
@@ -477,41 +499,40 @@
       });
     });
 
-    // Send text message handler
+    // Message form submission
     chatForm.addEventListener("submit", (e) => {
       e.preventDefault();
       const text = messageInput.value.trim();
       if (text === "") return;
-
       push(messagesRef, {
         username,
         message: text,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
-
       messageInput.value = "";
     });
 
-    // Send media image/video/audio handler
-    sendImageBtn.addEventListener("click", () => imageInput.click());
+    // Send Image button opens file dialog
+    sendImageBtn.addEventListener("click", () => {
+      imageInput.click();
+    });
 
-    imageInput.addEventListener("change", () => {
+    // Handle image/video/audio file upload
+    imageInput.addEventListener("change", async () => {
       const file = imageInput.files[0];
       if (!file) return;
-
+      // For simplicity, upload files as base64 data URLs (not recommended for large files)
       const reader = new FileReader();
       reader.onload = () => {
-        const mediaType = file.type;
-        const mediaData = reader.result;
-
         push(messagesRef, {
           username,
-          media: mediaData,
-          mediaType: mediaType,
-          timestamp: Date.now()
+          media: reader.result,
+          mediaType: file.type,
+          timestamp: Date.now(),
         });
       };
       reader.readAsDataURL(file);
+      imageInput.value = "";
     });
   </script>
 </body>
