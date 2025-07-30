@@ -38,30 +38,10 @@ body {
   animation: powerOn 1.5s ease forwards;
 }
 
-/* Optional: Scanline wipe overlay for power-on */
-/* Temporarily disabled for debugging */
-/*
-#chat-container::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: repeating-linear-gradient(
-    to bottom,
-    rgba(0, 255, 0, 0.05) 0,
-    rgba(0, 255, 0, 0.05) 1px,
-    transparent 1px,
-    transparent 3px
-  );
-  pointer-events: none;
-  animation: scanlineWipe 1.5s ease forwards;
-  z-index: 10;
-}
-*/
-
 #chat-bg {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
-  pointer-events: none;
+  pointer-events: none; /* Allow clicks/scrolls through */
   background:
     repeating-linear-gradient(
       to bottom,
@@ -72,14 +52,14 @@ body {
     );
   background-position: 0 1px;
   animation: glitchLines 1s infinite linear;
-  z-index: 0;
+  z-index: 0; /* Behind chat content */
   filter: none;
   mix-blend-mode: normal;
 }
 
 #chat-box {
-  flex-grow: 1;
-  padding: 5px 10px 10px 10px; /* Added bottom padding for scroll bottom comfort */
+  flex-grow: 1; /* Fill remaining height */
+  padding: 5px 10px 10px 10px; /* Bottom padding for scroll comfort */
   overflow-y: auto;
   white-space: pre-wrap;
   background-color: transparent;
@@ -87,12 +67,13 @@ body {
   font-family: monospace;
   box-sizing: border-box;
   margin: 0;
-  position: relative;
+  position: relative; /* Above overlays */
+  z-index: 1;
 }
 
 #chat-box div {
   line-height: 1.2;
-  margin: 0;
+  margin: 0;  /* No vertical margin */
   padding: 0;
 }
 
@@ -166,16 +147,6 @@ body {
   100% {
     opacity: 1;
     filter: brightness(1) contrast(1);
-  }
-}
-
-/* Scanline Wipe Animation */
-@keyframes scanlineWipe {
-  0% {
-    clip-path: inset(100% 0 0 0);
-  }
-  100% {
-    clip-path: inset(0 0 0 0);
   }
 }
 
