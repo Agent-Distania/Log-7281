@@ -92,6 +92,28 @@
       z-index: 100;
     }
 
+    #online-users-dropdown {
+      background: black;
+      color: #0f0;
+      border: 1px solid #0f0;
+      padding: 4px 8px;
+      font-family: monospace;
+      cursor: pointer;
+      min-width: 150px;
+      border-radius: 3px;
+      user-select: none;
+    }
+
+    #online-users-dropdown option {
+      background: black;
+      color: #0f0;
+    }
+
+    #online-users-dropdown option:disabled {
+      color: #050;
+      font-style: italic;
+    }
+
     /* ========== CHAT STYLES ========== */
     #chat-container {
       position: relative;
@@ -275,10 +297,10 @@
   </div>
 
   <!-- Online users dropdown top right -->
-  <div id="online-users-container">
-    Online Users:
-    <select id="online-users-dropdown" size="1">
-      <option value="">-- Select User --</option>
+  <div id="online-users-container" title="Select a user to highlight their messages">
+    <label for="online-users-dropdown" style="display:none;">Online Users</label>
+    <select id="online-users-dropdown" size="1" aria-label="Online users dropdown">
+      <option value="" disabled selected>-- Select User --</option>
     </select>
   </div>
 
@@ -307,9 +329,10 @@
       onDisconnect,
       update,
       remove,
-      get
+      onChildChanged,
     } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyCEnayZ7B7VYH_55IKjdRGriey5ffdPqRA",
       authDomain: "log-7281.firebaseapp.com",
@@ -340,7 +363,7 @@
 
     // Username & channel state
     function sanitizeUsername(name) {
-      return name.replace(/[.#$[\]]/g, "_");
+      return name.replace(/[.#$\[\]]/g, "_");
     }
 
     let username = localStorage.getItem("username") || prompt("Enter your username:") || "Anonymous";
@@ -350,6 +373,9 @@
     let currentChannel = localStorage.getItem("channel") || "general";
     channelSelect.value = currentChannel;
     localStorage.setItem("channel", currentChannel);
+
+    // User presence reference
+    let userRef = null;
 
     // --- PRESENCE MANAGEMENT ---
     const connectionsRef = ref(db, "connections");
@@ -375,7 +401,7 @@
     });
 
     function updateOnlineUsersList(usernames) {
-      userDropdown.innerHTML = '<option value="">-- Select User --</option>';
+      userDropdown.innerHTML = '<option value="" disabled selected>-- Select User --</option>';
       usernames.forEach((user) => {
         const option = document.createElement("option");
         option.value = user;
@@ -384,31 +410,27 @@
       });
     }
 
-    // Change username
+    window.addEventListener("beforeunload", () => {
+      if (userRef) remove(userRef);
+    });
+
     changeUsernameBtn.addEventListener("click", () => {
       const newName = prompt("Enter new username:", username);
       if (newName && newName.trim() !== "" && newName !== username) {
-        // Remove old connection ref on disconnect, then update username
-        if (myConnectionRef) {
-          remove(myConnectionRef).catch(() => {});
-        }
+        remove(userRef).catch(() => {});
         username = newName.trim();
         localStorage.setItem("username", username);
-        // Re-register presence with new username
-        myConnectionRef = push(connectionsRef);
-        set(myConnectionRef, username);
-        onDisconnect(myConnectionRef).remove();
-
+        setUserPresence(username);
         highlightSelectedUserMessages();
       }
     });
 
-    // Channel change handling
     channelSelect.addEventListener("change", () => {
       const newChannel = channelSelect.value;
       if (newChannel !== currentChannel) {
         currentChannel = newChannel;
         localStorage.setItem("channel", currentChannel);
+        unsubscribeMessages();
         clearMessages();
         subscribeMessages(currentChannel);
       }
@@ -498,125 +520,28 @@
       return div;
     }
 
-    // Typing indicator logic
-    let typingTimeout = null;
-    let typingRef = null;
+    // Edit mode variables
+    let currentlyEditing = null;
 
-    function sendTypingSignal() {
-      if (!typingRef) return;
-      set(ref(db, "typing/" + currentChannel + "/" + username), true);
-      clearTimeout(typingTimeout);
-      typingTimeout = setTimeout(() => {
-        remove(ref(db, "typing/" + currentChannel + "/" + username));
-      }, 1500);
-    }
+    function enterEditMode(div, key, val) {
+      if (currentlyEditing) return; // only one edit at a time
+      currentlyEditing = {div, key};
 
-    function listenTyping() {
-      const typingChannelRef = ref(db, "typing/" + currentChannel);
-      onValue(typingChannelRef, (snapshot) => {
-        const typingUsers = snapshot.val() || {};
-        const otherUsersTyping = Object.keys(typingUsers).filter(user => user !== username);
-        if (otherUsersTyping.length > 0) {
-          typingIndicator.style.display = "block";
-          typingIndicator.textContent = `${otherUsersTyping.join(", ")} typing...`;
-        } else {
-          typingIndicator.style.display = "none";
-        }
-      });
-    }
+      const msgContentSpan = div.querySelector(".msg-content");
+      const originalText = msgContentSpan.textContent;
 
-    function subscribeMessages(channel) {
-      if (messagesRef) {
-        // Remove previous listeners by reloading page or clear chatBox for simplicity
-      }
-      messagesRef = getMessagesRef(channel);
-      onValue(messagesRef, (snapshot) => {
-        clearMessages();
-        messageDataMap.clear();
-        const messages = snapshot.val() || {};
-        Object.entries(messages).forEach(([key, val]) => {
-          messageDataMap.set(key, val);
-          const msgElem = createMessageElement(key, val);
-          chatBox.appendChild(msgElem);
-        });
-        scrollChatToBottom();
-      });
-      listenTyping();
-    }
+      // Hide existing content & buttons
+      msgContentSpan.style.display = "none";
+      div.querySelector(".edit-btn").style.display = "none";
 
-    function scrollChatToBottom() {
-      const nearBottom = chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight < 100;
-      if (nearBottom) {
-        chatBox.scrollTop = chatBox.scrollHeight;
-      }
-    }
-
-    // Send message handler
-    chatForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const text = messageInput.value.trim();
-      if (text === "") return;
-      sendMessage(text);
-      messageInput.value = "";
-    });
-
-    function sendMessage(text, media = null, mediaType = null) {
-      if (!currentChannel) return;
-      const newMsgRef = push(getMessagesRef(currentChannel));
-      set(newMsgRef, {
-        username,
-        message: text,
-        timestamp: Date.now(),
-        media,
-        mediaType,
-        reactions: {}
-      });
-    }
-
-    // Image/video/audio sending
-    sendImageBtn.addEventListener("click", () => {
-      imageInput.click();
-    });
-
-    imageInput.addEventListener("change", (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        sendMessage("", evt.target.result, file.type);
-      };
-      reader.readAsDataURL(file);
-      imageInput.value = "";
-    });
-
-    // Reactions toggle using one-time get() call
-    function toggleReaction(messageId, reaction) {
-      const reactionRef = ref(db, `channels/${currentChannel}/messages/${messageId}/reactions/${reaction}/${username}`);
-      get(reactionRef).then((snap) => {
-        if (snap.exists()) {
-          remove(reactionRef);
-        } else {
-          set(reactionRef, true);
-        }
-      });
-    }
-
-    // Editing messages
-    function enterEditMode(msgElem, key, val) {
-      const msgContentSpan = msgElem.querySelector(".msg-content");
-      const oldText = val.message || "";
-
-      // Hide edit button
-      const editBtn = msgElem.querySelector(".edit-btn");
-      if (editBtn) editBtn.style.display = "none";
-
-      // Create input and buttons
+      // Create input
       const input = document.createElement("input");
       input.type = "text";
-      input.value = oldText;
+      input.value = originalText;
       input.className = "edit-input";
+      div.insertBefore(input, msgContentSpan);
 
+      // Save & Cancel buttons
       const saveBtn = document.createElement("button");
       saveBtn.textContent = "Save";
       saveBtn.className = "save-btn";
@@ -625,72 +550,192 @@
       cancelBtn.textContent = "Cancel";
       cancelBtn.className = "cancel-btn";
 
-      // Replace message content with input & buttons
-      msgContentSpan.style.display = "none";
-      msgElem.insertBefore(input, msgContentSpan);
-      msgElem.insertBefore(saveBtn, msgContentSpan);
-      msgElem.insertBefore(cancelBtn, msgContentSpan);
+      div.appendChild(saveBtn);
+      div.appendChild(cancelBtn);
 
       saveBtn.onclick = () => {
         const newText = input.value.trim();
-        if (newText.length > 0) {
-          update(ref(db, `channels/${currentChannel}/messages/${key}`), { message: newText });
+        if (newText && newText !== originalText) {
+          update(ref(db, `channels/${currentChannel}/messages/${key}`), {message: newText});
         }
-        exitEditMode(msgElem, input, saveBtn, cancelBtn, msgContentSpan);
+        exitEditMode();
       };
 
       cancelBtn.onclick = () => {
-        exitEditMode(msgElem, input, saveBtn, cancelBtn, msgContentSpan);
+        exitEditMode();
       };
+
+      function exitEditMode() {
+        currentlyEditing = null;
+        input.remove();
+        saveBtn.remove();
+        cancelBtn.remove();
+        msgContentSpan.style.display = "";
+        div.querySelector(".edit-btn").style.display = "";
+      }
     }
 
-    function exitEditMode(msgElem, input, saveBtn, cancelBtn, msgContentSpan) {
-      input.remove();
-      saveBtn.remove();
-      cancelBtn.remove();
-      msgContentSpan.style.display = "";
-      const editBtn = msgElem.querySelector(".edit-btn");
-      if (editBtn) editBtn.style.display = "";
+    // Reactions
+    const reactionTypes = ["👍", "❤️", "😂", "😮", "😢", "😡"];
+
+    function toggleReaction(messageKey, reaction) {
+      const reactionRef = ref(db, `channels/${currentChannel}/messages/${messageKey}/reactions/${reaction}/${username}`);
+      onValue(reactionRef, (snap) => {}, {onlyOnce: true});
+      // Using update/removal based on existing reaction
+      get(reactionRef).then(snap => {
+        if (snap.exists()) {
+          remove(reactionRef);
+        } else {
+          set(reactionRef, true);
+        }
+      });
     }
 
-    // User selection for highlighting
+    // Subscribe to messages for the current channel
+    function subscribeMessages(channel) {
+      messagesRef = getMessagesRef(channel);
+
+      onChildAdded(messagesRef, (snap) => {
+        const val = snap.val();
+        const key = snap.key;
+        messageDataMap.set(key, val);
+        const msgElem = createMessageElement(key, val);
+        chatBox.appendChild(msgElem);
+        if (isUserNearBottom()) scrollToBottom();
+      });
+
+      onChildChanged(messagesRef, (snap) => {
+        const val = snap.val();
+        const key = snap.key;
+        messageDataMap.set(key, val);
+
+        const existingElem = chatBox.querySelector(`.message[data-id="${key}"]`);
+        if (existingElem) {
+          const newElem = createMessageElement(key, val);
+          chatBox.replaceChild(newElem, existingElem);
+        }
+      });
+    }
+
+    function unsubscribeMessages() {
+      if (messagesRef) {
+        // No direct unsubscribe in Firebase realtime DB v9, so we rely on context switch
+        messagesRef = null;
+      }
+    }
+
+    // Check if user near bottom of chat to decide auto-scroll
+    function isUserNearBottom() {
+      return chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight < 100;
+    }
+
+    // Scroll chat box to bottom
+    function scrollToBottom() {
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // Highlight messages for selected user
     let selectedUser = null;
+
     userDropdown.addEventListener("change", () => {
       selectedUser = userDropdown.value || null;
       highlightSelectedUserMessages();
     });
 
     function highlightSelectedUserMessages() {
-      document.querySelectorAll(".message").forEach((msgElem) => {
-        const msgUser = msgElem.dataset.user;
-        if (selectedUser && msgUser === selectedUser) {
-          msgElem.classList.add("highlighted-user");
+      document.querySelectorAll(".message").forEach((msg) => {
+        if (selectedUser && msg.dataset.user === selectedUser) {
+          msg.classList.add("highlighted-user");
         } else {
-          msgElem.classList.remove("highlighted-user");
+          msg.classList.remove("highlighted-user");
         }
       });
     }
 
-    // Send typing indicator on input
-    messageInput.addEventListener("input", () => {
-      if (!typingRef) {
-        typingRef = ref(db, "typing/" + currentChannel + "/" + username);
-      }
-      sendTypingSignal();
+    // Sending messages
+    chatForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      sendMessage(messageInput.value.trim());
     });
 
-    // CRT login power button handler
+    sendImageBtn.addEventListener("click", () => {
+      imageInput.click();
+    });
+
+    imageInput.addEventListener("change", async () => {
+      const file = imageInput.files[0];
+      if (!file) return;
+
+      // For demo, convert small images to base64 and send as media, else skip
+      if (file.size > 2 * 1024 * 1024) {
+        alert("File too large to send!");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        sendMessage("", reader.result, file.type);
+      };
+      reader.readAsDataURL(file);
+
+      imageInput.value = "";
+    });
+
+    function sendMessage(text, media = "", mediaType = "") {
+      if (!text && !media) return;
+      const msgRef = ref(db, `channels/${currentChannel}/messages`);
+      const newMsg = {
+        username,
+        message: text || "",
+        media,
+        mediaType,
+        timestamp: Date.now(),
+        reactions: {}
+      };
+      push(msgRef, newMsg);
+      messageInput.value = "";
+    }
+
+    // User presence
+    function setUserPresence(name) {
+      if (myConnectionRef) {
+        set(myConnectionRef, name);
+      }
+    }
+    setUserPresence(username);
+
+    // Typing indicator (simplified)
+    let typingTimeout;
+    messageInput.addEventListener("input", () => {
+      set(ref(db, `typing/${currentChannel}/${username}`), true);
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(() => {
+        remove(ref(db, `typing/${currentChannel}/${username}`));
+      }, 2000);
+    });
+
+    const typingRef = ref(db, `typing/${currentChannel}`);
+    onValue(typingRef, (snap) => {
+      const typingUsers = snap.val() || {};
+      const othersTyping = Object.keys(typingUsers).filter(u => u !== username);
+      typingIndicator.style.display = othersTyping.length > 0 ? "block" : "none";
+    });
+
+    // Listen to channel changes for typing indicator and user presence
+    channelSelect.addEventListener("change", () => {
+      setUserPresence(username);
+    });
+
+    // Start
+    subscribeMessages(currentChannel);
+
+    // Login power on button
     powerButton.addEventListener("click", () => {
       loginOverlay.classList.add("faded");
       setTimeout(() => {
         loginOverlay.style.display = "none";
       }, 2000);
-      // Start chat after login animation
-      subscribeMessages(currentChannel);
     });
-
-    // Initialize with login overlay visible
-    loginOverlay.style.display = "flex";
 
   </script>
 </body>
