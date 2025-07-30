@@ -251,7 +251,9 @@
       background: #0f0;
       color: black;
     }
-
+  </style>
+</head>
+<body>
   <!-- CRT LOGIN SCREEN -->
   <div id="crt-login">
     <div id="crt-boot-text">BOOTING SYSTEM...</div>
@@ -281,7 +283,6 @@
   </div>
 
   <div id="chat-container">
-    <div id="chat-bg"></div>
     <div id="chat-noise"></div>
     <div id="chat-box"></div>
     <div id="typing-indicator" style="display:none;">Someone is typing...</div>
@@ -306,10 +307,9 @@
       onDisconnect,
       update,
       remove,
-      onChildChanged,
+      get
     } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-    // Firebase config (fill your own keys here)
     const firebaseConfig = {
       apiKey: "AIzaSyCEnayZ7B7VYH_55IKjdRGriey5ffdPqRA",
       authDomain: "log-7281.firebaseapp.com",
@@ -340,7 +340,7 @@
 
     // Username & channel state
     function sanitizeUsername(name) {
-      return name.replace(/[.#$\[\]]/g, "_");
+      return name.replace(/[.#$[\]]/g, "_");
     }
 
     let username = localStorage.getItem("username") || prompt("Enter your username:") || "Anonymous";
@@ -351,54 +351,64 @@
     channelSelect.value = currentChannel;
     localStorage.setItem("channel", currentChannel);
 
-    // User presence reference
-    let userRef = null;
-
     // --- PRESENCE MANAGEMENT ---
     const connectionsRef = ref(db, "connections");
-const connectedRef = ref(db, ".info/connected");
-let myConnectionRef = null;
+    const connectedRef = ref(db, ".info/connected");
+    let myConnectionRef = null;
 
-onValue(connectedRef, (snap) => {
-  if (snap.val() === true) {
-    myConnectionRef = push(connectionsRef);
-    set(myConnectionRef, username);
-    onDisconnect(myConnectionRef).remove();
-  }
-});
-
-onValue(connectionsRef, (snapshot) => {
-  const connections = snapshot.val() || {};
-  const seen = new Set();
-  const usernames = Object.values(connections).filter(user => {
-    return typeof user === 'string' && user.trim() !== '' && !seen.has(user) && seen.add(user);
-  });
-  userCount.textContent = `Users online: ${usernames.length}`;
-  updateOnlineUsersList(usernames);
-});
-
-
-    window.addEventListener("beforeunload", () => {
-      if (userRef) remove(userRef);
+    onValue(connectedRef, (snap) => {
+      if (snap.val() === true) {
+        myConnectionRef = push(connectionsRef);
+        set(myConnectionRef, username);
+        onDisconnect(myConnectionRef).remove();
+      }
     });
 
+    onValue(connectionsRef, (snapshot) => {
+      const connections = snapshot.val() || {};
+      const seen = new Set();
+      const usernames = Object.values(connections).filter(user => {
+        return typeof user === 'string' && user.trim() !== '' && !seen.has(user) && seen.add(user);
+      });
+      userCount.textContent = `Users online: ${usernames.length}`;
+      updateOnlineUsersList(usernames);
+    });
+
+    function updateOnlineUsersList(usernames) {
+      userDropdown.innerHTML = '<option value="">-- Select User --</option>';
+      usernames.forEach((user) => {
+        const option = document.createElement("option");
+        option.value = user;
+        option.textContent = user;
+        userDropdown.appendChild(option);
+      });
+    }
+
+    // Change username
     changeUsernameBtn.addEventListener("click", () => {
       const newName = prompt("Enter new username:", username);
       if (newName && newName.trim() !== "" && newName !== username) {
-        remove(userRef).catch(() => {});
+        // Remove old connection ref on disconnect, then update username
+        if (myConnectionRef) {
+          remove(myConnectionRef).catch(() => {});
+        }
         username = newName.trim();
         localStorage.setItem("username", username);
-        setUserPresence(username);
+        // Re-register presence with new username
+        myConnectionRef = push(connectionsRef);
+        set(myConnectionRef, username);
+        onDisconnect(myConnectionRef).remove();
+
         highlightSelectedUserMessages();
       }
     });
 
+    // Channel change handling
     channelSelect.addEventListener("change", () => {
       const newChannel = channelSelect.value;
       if (newChannel !== currentChannel) {
         currentChannel = newChannel;
         localStorage.setItem("channel", currentChannel);
-        unsubscribeMessages();
         clearMessages();
         subscribeMessages(currentChannel);
       }
@@ -488,11 +498,12 @@ onValue(connectionsRef, (snapshot) => {
       return div;
     }
 
-    // Typing indicator logic (simplified)
+    // Typing indicator logic
     let typingTimeout = null;
-    let typingRef = ref(db, "typing/" + currentChannel);
+    let typingRef = null;
 
     function sendTypingSignal() {
+      if (!typingRef) return;
       set(ref(db, "typing/" + currentChannel + "/" + username), true);
       clearTimeout(typingTimeout);
       typingTimeout = setTimeout(() => {
@@ -500,114 +511,149 @@ onValue(connectionsRef, (snapshot) => {
       }, 1500);
     }
 
-    messageInput.addEventListener("input", () => {
-      sendTypingSignal();
-    });
+    function listenTyping() {
+      const typingChannelRef = ref(db, "typing/" + currentChannel);
+      onValue(typingChannelRef, (snapshot) => {
+        const typingUsers = snapshot.val() || {};
+        const otherUsersTyping = Object.keys(typingUsers).filter(user => user !== username);
+        if (otherUsersTyping.length > 0) {
+          typingIndicator.style.display = "block";
+          typingIndicator.textContent = `${otherUsersTyping.join(", ")} typing...`;
+        } else {
+          typingIndicator.style.display = "none";
+        }
+      });
+    }
 
-    onValue(ref(db, "typing/" + currentChannel), (snapshot) => {
-      const data = snapshot.val() || {};
-      const usersTyping = Object.keys(data).filter(u => u !== username);
-      if (usersTyping.length > 0) {
-        typingIndicator.style.display = "block";
-      } else {
-        typingIndicator.style.display = "none";
+    function subscribeMessages(channel) {
+      if (messagesRef) {
+        // Remove previous listeners by reloading page or clear chatBox for simplicity
       }
-    });
+      messagesRef = getMessagesRef(channel);
+      onValue(messagesRef, (snapshot) => {
+        clearMessages();
+        messageDataMap.clear();
+        const messages = snapshot.val() || {};
+        Object.entries(messages).forEach(([key, val]) => {
+          messageDataMap.set(key, val);
+          const msgElem = createMessageElement(key, val);
+          chatBox.appendChild(msgElem);
+        });
+        scrollChatToBottom();
+      });
+      listenTyping();
+    }
+
+    function scrollChatToBottom() {
+      const nearBottom = chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight < 100;
+      if (nearBottom) {
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+    }
 
     // Send message handler
-    chatForm.addEventListener("submit", async (e) => {
+    chatForm.addEventListener("submit", (e) => {
       e.preventDefault();
-      const msg = messageInput.value.trim();
-      if (!msg) return;
-      const newMsgRef = push(getMessagesRef(currentChannel));
-      await set(newMsgRef, {
-        username,
-        message: msg,
-        timestamp: Date.now(),
-      });
+      const text = messageInput.value.trim();
+      if (text === "") return;
+      sendMessage(text);
       messageInput.value = "";
     });
 
-    // Image/video/audio send
+    function sendMessage(text, media = null, mediaType = null) {
+      if (!currentChannel) return;
+      const newMsgRef = push(getMessagesRef(currentChannel));
+      set(newMsgRef, {
+        username,
+        message: text,
+        timestamp: Date.now(),
+        media,
+        mediaType,
+        reactions: {}
+      });
+    }
+
+    // Image/video/audio sending
     sendImageBtn.addEventListener("click", () => {
       imageInput.click();
     });
 
-    imageInput.addEventListener("change", async () => {
-      if (!imageInput.files.length) return;
-      const file = imageInput.files[0];
-      // For simplicity, we'll use base64, but ideally upload to Firebase Storage and save URL
+    imageInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
       const reader = new FileReader();
-      reader.onload = async (e) => {
-        const dataURL = e.target.result;
-        const newMsgRef = push(getMessagesRef(currentChannel));
-        await set(newMsgRef, {
-          username,
-          media: dataURL,
-          mediaType: file.type,
-          timestamp: Date.now(),
-        });
+      reader.onload = function(evt) {
+        sendMessage("", evt.target.result, file.type);
       };
       reader.readAsDataURL(file);
       imageInput.value = "";
     });
 
-    // Reactions toggle
-    async function toggleReaction(messageId, reaction) {
+    // Reactions toggle using one-time get() call
+    function toggleReaction(messageId, reaction) {
       const reactionRef = ref(db, `channels/${currentChannel}/messages/${messageId}/reactions/${reaction}/${username}`);
-      onValue(reactionRef, (snap) => {
-        // This listener is just to detect presence, we will remove it immediately
-      }, { onlyOnce: true });
-      const reactionSnap = await new Promise(res => onValue(reactionRef, snap => res(snap), { onlyOnce: true }));
-      if (reactionSnap.exists()) {
-        await remove(reactionRef);
-      } else {
-        await set(reactionRef, true);
-      }
-    }
-
-    // Messages subscription
-    function subscribeMessages(channel) {
-      messagesRef = getMessagesRef(channel);
-      onChildAdded(messagesRef, (data) => {
-        const val = data.val();
-        const key = data.key;
-        const messageEl = createMessageElement(key, val);
-        chatBox.appendChild(messageEl);
-        messageDataMap.set(key, val);
-        scrollIfNearBottom();
-      });
-      onChildChanged(messagesRef, (data) => {
-        const val = data.val();
-        const key = data.key;
-        messageDataMap.set(key, val);
-        const oldMsg = chatBox.querySelector(`[data-id="${key}"]`);
-        if (oldMsg) {
-          const newMsg = createMessageElement(key, val);
-          chatBox.replaceChild(newMsg, oldMsg);
+      get(reactionRef).then((snap) => {
+        if (snap.exists()) {
+          remove(reactionRef);
+        } else {
+          set(reactionRef, true);
         }
       });
     }
 
-    function unsubscribeMessages() {
-      if (messagesRef) {
-        // no built-in unsubscribe, but you could track listeners and detach them here if you kept references
-      }
+    // Editing messages
+    function enterEditMode(msgElem, key, val) {
+      const msgContentSpan = msgElem.querySelector(".msg-content");
+      const oldText = val.message || "";
+
+      // Hide edit button
+      const editBtn = msgElem.querySelector(".edit-btn");
+      if (editBtn) editBtn.style.display = "none";
+
+      // Create input and buttons
+      const input = document.createElement("input");
+      input.type = "text";
+      input.value = oldText;
+      input.className = "edit-input";
+
+      const saveBtn = document.createElement("button");
+      saveBtn.textContent = "Save";
+      saveBtn.className = "save-btn";
+
+      const cancelBtn = document.createElement("button");
+      cancelBtn.textContent = "Cancel";
+      cancelBtn.className = "cancel-btn";
+
+      // Replace message content with input & buttons
+      msgContentSpan.style.display = "none";
+      msgElem.insertBefore(input, msgContentSpan);
+      msgElem.insertBefore(saveBtn, msgContentSpan);
+      msgElem.insertBefore(cancelBtn, msgContentSpan);
+
+      saveBtn.onclick = () => {
+        const newText = input.value.trim();
+        if (newText.length > 0) {
+          update(ref(db, `channels/${currentChannel}/messages/${key}`), { message: newText });
+        }
+        exitEditMode(msgElem, input, saveBtn, cancelBtn, msgContentSpan);
+      };
+
+      cancelBtn.onclick = () => {
+        exitEditMode(msgElem, input, saveBtn, cancelBtn, msgContentSpan);
+      };
     }
 
-    function scrollIfNearBottom() {
-      const threshold = 50; // px from bottom to auto scroll
-      const atBottom = chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight < threshold;
-      if (atBottom) {
-        chatBox.scrollTop = chatBox.scrollHeight;
-      }
+    function exitEditMode(msgElem, input, saveBtn, cancelBtn, msgContentSpan) {
+      input.remove();
+      saveBtn.remove();
+      cancelBtn.remove();
+      msgContentSpan.style.display = "";
+      const editBtn = msgElem.querySelector(".edit-btn");
+      if (editBtn) editBtn.style.display = "";
     }
 
-    chatBox.addEventListener("scroll", () => {
-      // Could manage "near bottom" flag if needed for auto-scroll on new messages
-    });
-
-    // Highlight selected user messages logic
+    // User selection for highlighting
     let selectedUser = null;
     userDropdown.addEventListener("change", () => {
       selectedUser = userDropdown.value || null;
@@ -615,93 +661,37 @@ onValue(connectionsRef, (snapshot) => {
     });
 
     function highlightSelectedUserMessages() {
-      document.querySelectorAll(".message").forEach(msg => {
-        if (!selectedUser) {
-          msg.classList.remove("highlighted-user");
+      document.querySelectorAll(".message").forEach((msgElem) => {
+        const msgUser = msgElem.dataset.user;
+        if (selectedUser && msgUser === selectedUser) {
+          msgElem.classList.add("highlighted-user");
         } else {
-          msg.classList.toggle("highlighted-user", msg.dataset.user === selectedUser);
+          msgElem.classList.remove("highlighted-user");
         }
       });
     }
 
-    // EDIT MODE for messages
-    function enterEditMode(messageEl, messageId, val) {
-      const contentSpan = messageEl.querySelector(".msg-content");
-      const editBtn = messageEl.querySelector(".edit-btn");
-
-      if (!contentSpan || !editBtn) return;
-
-      editBtn.style.display = "none";
-
-      const input = document.createElement("input");
-      input.type = "text";
-      input.className = "edit-input";
-      input.value = val.message;
-      messageEl.insertBefore(input, contentSpan);
-      contentSpan.style.display = "none";
-
-      const saveBtn = document.createElement("button");
-      saveBtn.textContent = "Save";
-      saveBtn.className = "save-btn";
-      const cancelBtn = document.createElement("button");
-      cancelBtn.textContent = "Cancel";
-      cancelBtn.className = "cancel-btn";
-
-      messageEl.appendChild(saveBtn);
-      messageEl.appendChild(cancelBtn);
-
-      saveBtn.onclick = async () => {
-        const newMsg = input.value.trim();
-        if (newMsg.length === 0) return;
-        await update(ref(db, `channels/${currentChannel}/messages/${messageId}`), {
-          message: newMsg,
-          edited: true,
-          editedTimestamp: Date.now(),
-        });
-        exitEditMode();
-      };
-
-      cancelBtn.onclick = () => {
-        exitEditMode();
-      };
-
-      function exitEditMode() {
-        input.remove();
-        saveBtn.remove();
-        cancelBtn.remove();
-        contentSpan.style.display = "";
-        editBtn.style.display = "";
+    // Send typing indicator on input
+    messageInput.addEventListener("input", () => {
+      if (!typingRef) {
+        typingRef = ref(db, "typing/" + currentChannel + "/" + username);
       }
-    }
-
-    // ONLINE USERS PRESENCE MANAGEMENT (UPDATED per your request)
-    const usersRef = ref(db, "users");
-    onValue(usersRef, (snapshot) => {
-      const data = snapshot.val() || {};
-      const userList = Object.keys(data);
-      userCount.textContent = `Users online: ${userList.length}`;
-      userDropdown.innerHTML = '<option value="">-- Select User --</option>';
-      userList.forEach((user) => {
-        const option = document.createElement("option");
-        option.value = user;
-        option.textContent = user;
-        userDropdown.appendChild(option);
-      });
+      sendTypingSignal();
     });
 
-    // CRT Login Screen power on button logic
+    // CRT login power button handler
     powerButton.addEventListener("click", () => {
       loginOverlay.classList.add("faded");
       setTimeout(() => {
         loginOverlay.style.display = "none";
-        subscribeMessages(currentChannel);
-      }, 2200);
+      }, 2000);
+      // Start chat after login animation
+      subscribeMessages(currentChannel);
     });
 
-    // Start with login overlay visible and prevent chat interaction
-    window.onload = () => {
-      // Nothing to do here, waiting for power button click
-    };
+    // Initialize with login overlay visible
+    loginOverlay.style.display = "flex";
+
   </script>
 </body>
 </html>
