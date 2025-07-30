@@ -329,6 +329,7 @@
       onValue,
       onDisconnect,
       update,
+      remove,
       onChildChanged,
     } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
@@ -337,7 +338,7 @@
       authDomain: "log-7281.firebaseapp.com",
       databaseURL: "https://log-7281-default-rtdb.firebaseio.com",
       projectId: "log-7281",
-      storageBucket: "log-7281.firebasestorage.app",
+      storageBucket: "log-7281.appspot.com", // FIXED bucket
       messagingSenderId: "997557129411",
       appId: "1:997557129411:web:ef247b0fff165df2ef9276",
     };
@@ -362,32 +363,14 @@
     if (!username) username = "Anonymous";
     localStorage.setItem("username", username);
 
-    // User presence setup
-    let userRef = null;
-    function setUserPresence(name) {
-      if (userRef) {
-        update(userRef, null);
-      }
-      userRef = ref(db, `users/${name}`);
-      set(userRef, true);
-      onDisconnect(userRef).remove();
-    }
-    setUserPresence(username);
-
     changeUsernameBtn.addEventListener("click", () => {
       const newName = prompt("Enter new username:", username);
-      if (newName && newName.trim() !== "" && newName.trim() !== username) {
-        if (userRef) {
-          update(userRef, null);
-        }
+      if (newName && newName.trim() !== "") {
+        // Remove old presence
+        remove(ref(db, `users/${username}`)).catch(() => {});
         username = newName.trim();
         localStorage.setItem("username", username);
         setUserPresence(username);
-
-        // Update typingRef and listener for new username
-        typingRef = ref(db, `channels/${currentChannel}/typing/${username}`);
-        listenForTyping(currentChannel);
-
         highlightSelectedUserMessages();
       }
     });
@@ -450,7 +433,22 @@
         div.appendChild(editBtn);
       }
 
-      // Removed reaction buttons container
+      // Add reactions container
+      const reactionsContainer = document.createElement("span");
+      reactionsContainer.className = "reactions-container";
+      if (val.reactions) {
+        for (const [reaction, users] of Object.entries(val.reactions)) {
+          const count = Object.keys(users).length;
+          if (count > 0) {
+            const reactionBtn = document.createElement("button");
+            reactionBtn.className = "reaction-btn";
+            reactionBtn.textContent = `${reaction} ${count}`;
+            reactionBtn.onclick = () => toggleReaction(key, reaction);
+            reactionsContainer.appendChild(reactionBtn);
+          }
+        }
+      }
+      div.appendChild(reactionsContainer);
 
       return div;
     }
@@ -506,27 +504,106 @@
       }
     }
 
-    // Removed toggleReaction function completely
+    function toggleReaction(messageKey, reaction) {
+      const userId = username;
+      const reactionRef = ref(db, `channels/${currentChannel}/messages/${messageKey}/reactions/${reaction}/${userId}`);
+
+      onValue(reactionRef, (snapshot) => {
+        if (snapshot.exists()) {
+          remove(reactionRef);
+        } else {
+          set(reactionRef, true);
+        }
+      }, { onlyOnce: true });
+    }
+
+    // Manage presence
+    let userRef = null;
+    function setUserPresence(name) {
+      if (userRef) {
+        remove(userRef).catch(() => {});
+      }
+      userRef = ref(db, `users/${name}`);
+      set(userRef, { online: true, lastOnline: Date.now() });
+      onDisconnect(userRef).remove();
+    }
+
+    setUserPresence(username);
+
+    // Track online users
+    const usersRef = ref(db, "users");
+    function updateOnlineUsersList(users) {
+      userCount.textContent = `Users online: ${Object.keys(users).length}`;
+      userDropdown.innerHTML = '<option value="">-- Select User --</option>';
+      for (const userName of Object.keys(users)) {
+        const option = document.createElement("option");
+        option.value = userName;
+        option.textContent = userName;
+        userDropdown.appendChild(option);
+      }
+    }
+
+    onValue(usersRef, (snapshot) => {
+      const users = snapshot.val() || {};
+      updateOnlineUsersList(users);
+    });
+
+    // Typing indicator
+    let typingRef = ref(db, "typing");
+    let typingTimeout = null;
+
+    messageInput.addEventListener("input", () => {
+      if (messageInput.value.trim() !== "") {
+        set(typingRef, username);
+        if (typingTimeout) clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => {
+          remove(typingRef);
+        }, 3000);
+      } else {
+        remove(typingRef);
+        if (typingTimeout) clearTimeout(typingTimeout);
+      }
+    });
+
+    onValue(typingRef, (snapshot) => {
+      const typingUser = snapshot.val();
+      if (typingUser && typingUser !== username) {
+        typingIndicator.style.display = "block";
+        typingIndicator.textContent = `${typingUser} is typing...`;
+      } else {
+        typingIndicator.style.display = "none";
+      }
+    });
+
+    // Handle channel switching & listening to messages with unsubscribe cleanup
+    let listeners = [];
+    function clearListeners() {
+      listeners.forEach(unsub => unsub());
+      listeners = [];
+    }
 
     function startListeningToChannel(channel) {
       clearMessages();
+      clearListeners();
+
       messagesRef = getMessagesRef(channel);
 
-      onChildAdded(messagesRef, (snapshot) => {
+      const unsubChildAdded = onChildAdded(messagesRef, (snapshot) => {
         const val = snapshot.val();
         const key = snapshot.key;
         const msgElem = createMessageElement(key, val);
         chatBox.appendChild(msgElem);
-        // Auto scroll if near bottom
+        // Scroll only if near bottom
         if (chatBox.scrollTop + chatBox.clientHeight >= chatBox.scrollHeight - 50) {
           chatBox.scrollTop = chatBox.scrollHeight;
         }
         highlightSelectedUserMessages();
       });
+      listeners.push(unsubChildAdded);
 
-      onChildChanged(messagesRef, (snapshot) => {
-        const key = snapshot.key;
+      const unsubChildChanged = onChildChanged(messagesRef, (snapshot) => {
         const val = snapshot.val();
+        const key = snapshot.key;
         const existingMsg = chatBox.querySelector(`.message[data-id="${key}"]`);
         if (existingMsg) {
           const newMsgElem = createMessageElement(key, val);
@@ -534,97 +611,26 @@
           highlightSelectedUserMessages();
         }
       });
+      listeners.push(unsubChildChanged);
     }
 
-    // USER COUNT & ONLINE USERS DROPDOWN
+    startListeningToChannel(currentChannel);
 
-    const usersRef = ref(db, "users");
-
-    function updateUserCount(usersObj) {
-      const count = usersObj ? Object.keys(usersObj).length : 0;
-      userCount.textContent = `Users online: ${count}`;
-      updateOnlineUsersDropdown(usersObj);
-    }
-
-    function updateOnlineUsersDropdown(usersObj) {
-      userDropdown.innerHTML = '<option value="">-- Select User --</option>';
-      if (!usersObj) return;
-      for (const userId of Object.keys(usersObj)) {
-        const option = document.createElement("option");
-        option.value = userId;
-        option.textContent = userId;
-        userDropdown.appendChild(option);
-      }
-    }
-
-    onValue(usersRef, (snapshot) => {
-      updateUserCount(snapshot.val());
+    channelSelect.addEventListener("change", () => {
+      currentChannel = channelSelect.value;
+      localStorage.setItem("channel", currentChannel);
+      startListeningToChannel(currentChannel);
     });
 
-    // Typing indicator
-    let typingRef = ref(db, `channels/${currentChannel}/typing/${username}`);
-    let typingUsersRef = ref(db, `channels/${currentChannel}/typing`);
-
-    function listenForTyping(channel) {
-      typingUsersRef = ref(db, `channels/${channel}/typing`);
-      onValue(typingUsersRef, (snapshot) => {
-        const typingUsers = snapshot.val() || {};
-        delete typingUsers[username]; // exclude self
-        if (Object.keys(typingUsers).length > 0) {
-          typingIndicator.style.display = "block";
-        } else {
-          typingIndicator.style.display = "none";
-        }
-      });
-    }
-
-    listenForTyping(currentChannel);
-
-    messageInput.addEventListener("input", () => {
-      set(typingRef, messageInput.value !== "" ? username : null);
-      setTimeout(() => set(typingRef, null), 3000);
+    // Highlight messages from selected user
+    userDropdown.addEventListener("change", () => {
+      highlightSelectedUserMessages();
     });
 
-    chatForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const text = messageInput.value.trim();
-      if (!text) return;
-
-      await push(messagesRef, {
-        username,
-        message: text,
-        timestamp: Date.now()
-      });
-      messageInput.value = "";
-      set(typingRef, null);
-    });
-
-    sendImageBtn.addEventListener("click", () => {
-      imageInput.click();
-    });
-
-    imageInput.addEventListener("change", async () => {
-      const file = imageInput.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = async function(evt) {
-        await push(messagesRef, {
-          username,
-          media: evt.target.result,
-          mediaType: file.type,
-          timestamp: Date.now()
-        });
-      };
-      reader.readAsDataURL(file);
-      imageInput.value = "";
-    });
-
-    // Highlight messages by selected user
     function highlightSelectedUserMessages() {
       const selectedUser = userDropdown.value;
       const messages = chatBox.querySelectorAll(".message");
-      messages.forEach((msg) => {
+      messages.forEach(msg => {
         if (selectedUser && msg.dataset.user === selectedUser) {
           msg.classList.add("highlighted-user");
         } else {
@@ -633,28 +639,48 @@
       });
     }
 
-    userDropdown.addEventListener("change", () => {
-      highlightSelectedUserMessages();
+    // Sending message
+    chatForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!messageInput.value.trim()) return;
+
+      const newMsgRef = push(messagesRef);
+      await set(newMsgRef, {
+        username,
+        message: messageInput.value.trim(),
+        timestamp: Date.now(),
+      });
+      messageInput.value = "";
+      remove(typingRef);
     });
 
-    channelSelect.addEventListener("change", () => {
-      currentChannel = channelSelect.value;
-      localStorage.setItem("channel", currentChannel);
-
-      set(typingRef, null);
-
-      startListeningToChannel(currentChannel);
-
-      typingRef = ref(db, `channels/${currentChannel}/typing/${username}`);
-      listenForTyping(currentChannel);
-
-      highlightSelectedUserMessages();
+    // Sending image/video/audio files
+    sendImageBtn.addEventListener("click", () => {
+      imageInput.click();
     });
 
-    startListeningToChannel(currentChannel);
+    imageInput.addEventListener("change", async () => {
+      if (!imageInput.files.length) return;
+      const file = imageInput.files[0];
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const mediaUrl = event.target.result;
+        const mediaType = file.type;
 
+        const newMsgRef = push(messagesRef);
+        await set(newMsgRef, {
+          username,
+          media: mediaUrl,
+          mediaType,
+          timestamp: Date.now(),
+        });
+      };
+      reader.readAsDataURL(file);
+      imageInput.value = ""; // reset input
+    });
+
+    // CRT login power button functionality
     powerButton.addEventListener("click", () => {
-      document.getElementById("crt-boot-text").textContent = "SYSTEM ONLINE...";
       loginOverlay.classList.add("faded");
       setTimeout(() => {
         loginOverlay.style.display = "none";
