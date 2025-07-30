@@ -635,7 +635,7 @@
     }
 
     // Highlight messages for selected user
-    <option value="">-- Select User --</option>
+    let selectedUser = null;
 
     userDropdown.addEventListener("change", () => {
       selectedUser = userDropdown.value || null;
