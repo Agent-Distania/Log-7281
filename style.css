@@ -1,4 +1,6 @@
-/* General Terminal Look */
+/* ===============================
+   General Terminal Look
+================================== */
 body {
   background-color: #111;
   color: #0f0;
@@ -6,7 +8,9 @@ body {
   padding: 20px;
 }
 
-/* Chat Container Wrapper */
+/* ===============================
+   Chat Container Wrapper
+================================== */
 #chat-container {
   position: relative;
   height: 500px;
@@ -14,11 +18,12 @@ body {
   border: 1px solid #0f0;
   overflow: hidden;
   background-color: #000;
-  /* UPDATED: make sure container uses box-sizing */
   box-sizing: border-box;
 }
 
-/* Glitch Effect Layer */
+/* ===============================
+   Glitch Effect Background
+================================== */
 #chat-bg {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -37,47 +42,93 @@ body {
   mix-blend-mode: screen;
 }
 
-/* Message Box Layer */
+/* ===============================
+   Chat Message Box
+================================== */
 #chat-box {
   position: relative;
   height: 100%;
-  padding: 5px 10px 20px 10px; /* increased bottom padding for last message */
-  overflow-y: auto;             /* auto scrollbar for smoother behavior */
+  padding: 5px 10px 20px 10px;
+  overflow-y: auto;
   white-space: pre-wrap;
   background-color: transparent;
   color: #0f0;
   font-family: monospace;
   z-index: 1;
-  box-sizing: border-box;       /* include padding in height */
-  padding-top: 5px;             /* reduced top padding to bring text up */
-  margin-top: -3px;             /* slight negative margin to lift content */
+  box-sizing: border-box;
+  padding-top: 5px;
+  margin-top: -3px;
+
+  /* CRT-style scrollbar (Firefox) */
+  scrollbar-color: #0f0 #000;
+  scrollbar-width: thin;
 }
 
-/* Style each message container */
+/* CRT-style scrollbar (WebKit) */
+#chat-box::-webkit-scrollbar {
+  width: 10px;
+}
+#chat-box::-webkit-scrollbar-track {
+  background: #000;
+}
+#chat-box::-webkit-scrollbar-thumb {
+  background-color: #0f0;
+  border: 2px solid #000;
+  box-shadow: 0 0 5px #0f0;
+}
+
+/* ===============================
+   Typing Indicator Pulse
+================================== */
+.typing-indicator {
+  color: #0f0;
+  font-style: italic;
+  animation: typingPulse 1s infinite;
+}
+
+@keyframes typingPulse {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ===============================
+   Message Container Style
+================================== */
 #chat-box div {
-  line-height: 1.2;             /* tighter line spacing for dense text */
+  line-height: 1.2;
   margin-top: 0;
   padding-top: 0;
 }
 
-/* Add space below the Change Username button */
-#change-username {
-  margin-bottom: 10px;
-  display: inline-block; /* ensures margin works properly */
-}
-
-/* Form Inputs */
+/* ===============================
+   Input Form Layout
+================================== */
 #chat-form {
   display: flex;
   gap: 10px;
 }
 
+/* Add spacing between username and channel menu */
+#change-username {
+  margin-bottom: 10px;
+  display: inline-block;
+}
+
+/* ===============================
+   Input and Button Style
+================================== */
 #chat-form input,
 #chat-form button {
   font-family: monospace;
 }
 
-/* Media Styling */
+/* ===============================
+   Media Embeds
+================================== */
 img.chat-image {
   max-width: 200px;
   display: block;
@@ -91,7 +142,9 @@ audio.chat-audio {
   margin-top: 5px;
 }
 
-/* Glitch Animation */
+/* ===============================
+   Glitch Line Animation
+================================== */
 @keyframes glitchLines {
   0%, 100% {
     background-position: 0 0;
@@ -103,7 +156,9 @@ audio.chat-audio {
   }
 }
 
-/* CRT Style for buttons and selects */
+/* ===============================
+   CRT-Style Buttons
+================================== */
 button, .edit-btn, .save-btn, .cancel-btn, #change-username, #sendImage {
   font-family: monospace;
   font-size: 1em;
@@ -118,12 +173,10 @@ button, .edit-btn, .save-btn, .cancel-btn, #change-username, #sendImage {
     0 0 20px #0f0;
   user-select: none;
   transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-  -webkit-appearance: none;
-  -moz-appearance: none;
   appearance: none;
 }
 
-/* Remove default focus outline, add custom glow */
+/* Button Focus & Glow */
 button:focus, .edit-btn:focus, .save-btn:focus, .cancel-btn:focus, #change-username:focus, #sendImage:focus {
   outline: none;
   box-shadow:
@@ -132,7 +185,7 @@ button:focus, .edit-btn:focus, .save-btn:focus, .cancel-btn:focus, #change-usern
     0 0 20px #0f0;
 }
 
-/* Hover effect */
+/* Button Hover */
 button:hover, .edit-btn:hover, .save-btn:hover, .cancel-btn:hover, #change-username:hover, #sendImage:hover {
   background-color: #0f0;
   color: black;
@@ -140,7 +193,9 @@ button:hover, .edit-btn:hover, .save-btn:hover, .cancel-btn:hover, #change-usern
   text-shadow: none;
 }
 
-/* CRT Style for select dropdowns */
+/* ===============================
+   CRT-Style Dropdowns
+================================== */
 select, #channel-select, #online-users-dropdown {
   font-family: monospace;
   font-size: 1em;
@@ -155,12 +210,10 @@ select, #channel-select, #online-users-dropdown {
     0 0 10px #0f0,
     0 0 20px #0f0;
   transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-  -webkit-appearance: none;
-  -moz-appearance: none;
   appearance: none;
 }
 
-/* Remove default focus outline, add custom glow */
+/* Dropdown Focus */
 select:focus, #channel-select:focus, #online-users-dropdown:focus {
   outline: none;
   box-shadow:
@@ -169,7 +222,7 @@ select:focus, #channel-select:focus, #online-users-dropdown:focus {
     0 0 20px #0f0;
 }
 
-/* Hover effect */
+/* Dropdown Hover */
 select:hover, #channel-select:hover, #online-users-dropdown:hover {
   background-color: #0f0;
   color: black;
@@ -177,7 +230,7 @@ select:hover, #channel-select:hover, #online-users-dropdown:hover {
   text-shadow: none;
 }
 
-/* Custom dropdown arrow for selects */
+/* Custom Dropdown Arrow */
 select::-ms-expand {
   display: none;
 }
