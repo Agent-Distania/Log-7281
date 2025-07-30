@@ -25,6 +25,26 @@ body {
   overflow: hidden;
   background-color: #000;
   box-sizing: border-box;
+
+  /* Power On Animation */
+  animation: powerOn 1.5s ease forwards;
+}
+
+/* Optional: Scanline wipe overlay for power-on */
+#chat-container::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 255, 0, 0.2) 0,
+    rgba(0, 255, 0, 0.2) 2px,
+    transparent 2px,
+    transparent 4px
+  );
+  pointer-events: none;
+  animation: scanlineWipe 1.5s ease forwards;
+  z-index: 10;
 }
 
 /* Glitch Effect Layer */
@@ -43,18 +63,6 @@ body {
   animation: glitchLines 1s infinite linear;
   z-index: 0;
   filter: drop-shadow(0 0 2px #0f0);
-  mix-blend-mode: screen;
-}
-
-/* ======== SUBTLE BACKGROUND STATIC/NOISE OVERLAY ======== */
-#chat-noise {
-  pointer-events: none;
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-image: url('https://www.transparenttextures.com/patterns/asfalt-light.png');
-  opacity: 0.03;
-  animation: noiseMove 10s linear infinite;
-  z-index: 0.5; /* Between glitch bg (0) and messages (1) */
   mix-blend-mode: screen;
 }
 
@@ -130,13 +138,38 @@ body {
   }
 }
 
-/* Noise Animation */
-@keyframes noiseMove {
+/* Power On Animation Keyframes */
+@keyframes powerOn {
   0% {
-    background-position: 0 0;
+    opacity: 0;
+    filter: brightness(0) contrast(0);
+  }
+  20% {
+    opacity: 1;
+    filter: brightness(2) contrast(2);
+  }
+  40% {
+    filter: brightness(0.6) contrast(0.6);
+  }
+  60% {
+    filter: brightness(1.5) contrast(1.5);
+  }
+  80% {
+    filter: brightness(1) contrast(1);
   }
   100% {
-    background-position: 100px 100px;
+    opacity: 1;
+    filter: brightness(1) contrast(1);
+  }
+}
+
+/* Scanline Wipe Animation */
+@keyframes scanlineWipe {
+  0% {
+    clip-path: inset(100% 0 0 0);
+  }
+  100% {
+    clip-path: inset(0 0 0 0);
   }
 }
 
