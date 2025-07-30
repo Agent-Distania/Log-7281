@@ -17,12 +17,16 @@ body {
 }
 
 #chat-container {
-  position: relative;
-  height: 500px;
-  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  max-width: 800px;
+  margin: 20px auto;
   border: 1px solid #0f0;
-  background-color: #000;
-  box-sizing: border-box;
+  background: #000;
+  font-size: 14px;
+  line-height: 1.4em;
+  overflow: hidden;
+}
 
   /* ✅ Allow internal elements to grow and align */
   display: flex;
@@ -73,17 +77,16 @@ body {
 }
 
 #chat-box {
-  /* ✅ Fill vertical space and allow scroll */
-  flex-grow: 1;
-  padding: 5px 10px;
+  max-height: 400px;
   overflow-y: auto;
-  white-space: pre-wrap;
-  background-color: transparent;
+  padding: 10px;
+  background: black;
   color: #0f0;
   font-family: monospace;
   box-sizing: border-box;
-  margin-top: 0;
-  position: relative;
+
+  /* ✅ This ensures the height only matches content unless it needs to scroll */
+  height: fit-content;
 }
 
 #chat-box div {
