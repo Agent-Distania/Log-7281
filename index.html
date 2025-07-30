@@ -362,11 +362,33 @@
     if (!username) username = "Anonymous";
     localStorage.setItem("username", username);
 
+    // User presence setup
+    let userRef = null;
+    function setUserPresence(name) {
+      if (userRef) {
+        update(userRef, null);
+      }
+      userRef = ref(db, `users/${name}`);
+      set(userRef, true);
+      onDisconnect(userRef).remove();
+    }
+    setUserPresence(username);
+
     changeUsernameBtn.addEventListener("click", () => {
       const newName = prompt("Enter new username:", username);
-      if (newName && newName.trim() !== "") {
+      if (newName && newName.trim() !== "" && newName.trim() !== username) {
+        if (userRef) {
+          update(userRef, null);
+        }
         username = newName.trim();
         localStorage.setItem("username", username);
+        setUserPresence(username);
+
+        // Update typingRef and listener for new username
+        typingRef = ref(db, `channels/${currentChannel}/typing/${username}`);
+        listenForTyping(currentChannel);
+
+        highlightSelectedUserMessages();
       }
     });
 
@@ -379,7 +401,6 @@
     }
 
     let messagesRef = getMessagesRef(currentChannel);
-    let unsubscribeMessages = null;
 
     function clearMessages() {
       chatBox.innerHTML = "";
@@ -429,22 +450,7 @@
         div.appendChild(editBtn);
       }
 
-      // Add reactions container
-      const reactionsContainer = document.createElement("span");
-      reactionsContainer.className = "reactions-container";
-      if (val.reactions) {
-        for (const [reaction, users] of Object.entries(val.reactions)) {
-          const count = Object.keys(users).length;
-          if (count > 0) {
-            const reactionBtn = document.createElement("button");
-            reactionBtn.className = "reaction-btn";
-            reactionBtn.textContent = `${reaction} ${count}`;
-            reactionBtn.onclick = () => toggleReaction(key, reaction);
-            reactionsContainer.appendChild(reactionBtn);
-          }
-        }
-      }
-      div.appendChild(reactionsContainer);
+      // Removed reaction buttons container
 
       return div;
     }
@@ -500,22 +506,9 @@
       }
     }
 
-    function toggleReaction(messageKey, reaction) {
-      const userId = username;
-      const reactionRef = ref(db, `channels/${currentChannel}/messages/${messageKey}/reactions/${reaction}/${userId}`);
-      onValue(reactionRef, (snapshot) => {
-        if (snapshot.exists()) {
-          // Remove reaction
-          update(reactionRef, null);
-        } else {
-          // Add reaction
-          set(reactionRef, true);
-        }
-      }, { onlyOnce: true });
-    }
+    // Removed toggleReaction function completely
 
     function startListeningToChannel(channel) {
-      if (unsubscribeMessages) unsubscribeMessages();
       clearMessages();
       messagesRef = getMessagesRef(channel);
 
@@ -543,7 +536,8 @@
       });
     }
 
-    // USER COUNT
+    // USER COUNT & ONLINE USERS DROPDOWN
+
     const usersRef = ref(db, "users");
 
     function updateUserCount(usersObj) {
@@ -566,11 +560,6 @@
     onValue(usersRef, (snapshot) => {
       updateUserCount(snapshot.val());
     });
-
-    // Add current user to online users list
-    const userRef = ref(db, `users/${username}`);
-    set(userRef, true);
-    onDisconnect(userRef).remove();
 
     // Typing indicator
     let typingRef = ref(db, `channels/${currentChannel}/typing/${username}`);
@@ -610,7 +599,6 @@
       set(typingRef, null);
     });
 
-    // Handle image/video/audio upload
     sendImageBtn.addEventListener("click", () => {
       imageInput.click();
     });
@@ -649,27 +637,22 @@
       highlightSelectedUserMessages();
     });
 
-    // Channel change with combined listener and fixes
     channelSelect.addEventListener("change", () => {
       currentChannel = channelSelect.value;
       localStorage.setItem("channel", currentChannel);
 
       set(typingRef, null);
 
-      // Update messagesRef and listen for new channel messages
       startListeningToChannel(currentChannel);
 
-      // Update typing refs and listener
       typingRef = ref(db, `channels/${currentChannel}/typing/${username}`);
       listenForTyping(currentChannel);
 
       highlightSelectedUserMessages();
     });
 
-    // Start listening to initial channel
     startListeningToChannel(currentChannel);
 
-    // CRT login power button fade out
     powerButton.addEventListener("click", () => {
       document.getElementById("crt-boot-text").textContent = "SYSTEM ONLINE...";
       loginOverlay.classList.add("faded");
