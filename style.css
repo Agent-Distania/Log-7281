@@ -16,15 +16,21 @@ body {
   box-sizing: inherit;
 }
 
-/* Chat Container Wrapper */
 #chat-container {
   position: relative;
   height: 500px;
   margin-bottom: 10px;
   border: 1px solid #0f0;
-  overflow: hidden;
-  background-color: #000; /* solid black */
+  background-color: #000;
   box-sizing: border-box;
+
+  /* Remove overflow hidden to allow child scrolling */
+  overflow: visible;
+
+  /* Optionally use flexbox */
+  display: flex;
+  flex-direction: column;
+}
 
   /* Power On Animation */
   animation: powerOn 1.5s ease forwards;
@@ -67,27 +73,24 @@ body {
   mix-blend-mode: normal; /* removed screen blend */
 }
 
-/* Message Box Layer */
 #chat-box {
-  position: relative;
-  height: 100%;
-  padding: 5px 10px 0px 10px;
+  /* Use flex-grow to fill container */
+  flex-grow: 1;
+  padding: 5px 10px;
   overflow-y: auto;
   white-space: pre-wrap;
   background-color: transparent;
   color: #0f0;
   font-family: monospace;
-  z-index: 1;
   box-sizing: border-box;
-  padding-top: 5px;
-  margin-top: -3px;
+  margin-top: 0; /* remove negative margin */
+  position: relative;
 }
 
-/* Chat Message Styling */
 #chat-box div {
   line-height: 1.2;
-  margin-top: 0;
-  padding-top: 0;
+  margin: 0; /* remove margins */
+  padding: 0; /* remove padding */
 }
 
 /* Highlight selected user's messages */
