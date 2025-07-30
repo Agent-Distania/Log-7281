@@ -23,17 +23,15 @@ body {
 }
 
 #chat-container {
-  position: relative;
   height: 500px;
-  margin-bottom: 10px;
   border: 1px solid #0f0;
   background-color: #000;
-  box-sizing: border-box;
-
-  overflow: hidden;
-
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  padding: 0;
+  margin-bottom: 10px;
 
   animation: powerOn 1.5s ease forwards;
 }
@@ -41,7 +39,7 @@ body {
 #chat-bg {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
-  pointer-events: none; /* Allow clicks/scrolls through */
+  pointer-events: none;
   background:
     repeating-linear-gradient(
       to bottom,
@@ -52,22 +50,19 @@ body {
     );
   background-position: 0 1px;
   animation: glitchLines 1s infinite linear;
-  z-index: 0; /* Behind chat content */
-  filter: none;
-  mix-blend-mode: normal;
+  z-index: 0;
 }
 
 #chat-box {
-  flex-grow: 1; /* Fill remaining height */
-  padding: 5px 10px 10px 10px; /* Bottom padding for scroll comfort */
+  flex: 1 1 auto;
   overflow-y: auto;
+  padding: 10px;
+  margin: 0;
+  box-sizing: border-box;
   white-space: pre-wrap;
-  background-color: transparent;
   color: #0f0;
   font-family: monospace;
-  box-sizing: border-box;
-  margin: 0;
-  position: relative; /* Above overlays */
+  position: relative;
   z-index: 1;
 }
 
