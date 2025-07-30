@@ -24,19 +24,20 @@ body {
   background-color: #000;
   box-sizing: border-box;
 
-  /* Remove overflow hidden to allow child scrolling */
-  overflow: visible;
+  /* Set overflow hidden so child scroll works properly */
+  overflow: hidden;
 
-  /* Optionally use flexbox */
+  /* Flexbox container */
   display: flex;
   flex-direction: column;
-}
 
   /* Power On Animation */
   animation: powerOn 1.5s ease forwards;
 }
 
 /* Optional: Scanline wipe overlay for power-on */
+/* Temporarily disabled for debugging */
+/*
 #chat-container::before {
   content: "";
   position: absolute;
@@ -52,6 +53,7 @@ body {
   animation: scanlineWipe 1.5s ease forwards;
   z-index: 10;
 }
+*/
 
 /* Subtle Glitch Line Overlay */
 #chat-bg {
