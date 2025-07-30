@@ -46,6 +46,18 @@ body {
   mix-blend-mode: screen;
 }
 
+/* ======== SUBTLE BACKGROUND STATIC/NOISE OVERLAY ======== */
+#chat-noise {
+  pointer-events: none;
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: url('https://www.transparenttextures.com/patterns/asfalt-light.png');
+  opacity: 0.03;
+  animation: noiseMove 10s linear infinite;
+  z-index: 0.5; /* Between glitch bg (0) and messages (1) */
+  mix-blend-mode: screen;
+}
+
 /* Message Box Layer */
 #chat-box {
   position: relative;
@@ -115,6 +127,16 @@ body {
   50% {
     background-position: 0 2px;
     opacity: 1;
+  }
+}
+
+/* Noise Animation */
+@keyframes noiseMove {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 100px 100px;
   }
 }
 
