@@ -37,17 +37,17 @@ body {
   top: 0; left: 0; right: 0; bottom: 0;
   background: repeating-linear-gradient(
     to bottom,
-    rgba(0, 255, 0, 0.15) 0,
-    rgba(0, 255, 0, 0.15) 2px,
-    transparent 2px,
-    transparent 4px
+    rgba(0, 255, 0, 0.05) 0,
+    rgba(0, 255, 0, 0.05) 1px,
+    transparent 1px,
+    transparent 3px
   );
   pointer-events: none;
   animation: scanlineWipe 1.5s ease forwards;
   z-index: 10;
 }
 
-/* Glitch Effect Layer */
+/* Subtle Glitch Line Overlay */
 #chat-bg {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -55,15 +55,16 @@ body {
   background:
     repeating-linear-gradient(
       to bottom,
-      rgba(0,255,0,0.2),
-      rgba(0,255,0,0.2) 2px,
-      transparent 2px,
-      transparent 4px
+      rgba(0, 255, 0, 0.08) 0,
+      rgba(0, 255, 0, 0.08) 1px,
+      transparent 1px,
+      transparent 3px
     );
+  background-position: 0 1px; /* offset by 1px for no alignment overlap */
   animation: glitchLines 1s infinite linear;
   z-index: 0;
-  filter: drop-shadow(0 0 2px #0f0);
-  mix-blend-mode: screen;
+  filter: none; /* removed drop shadow */
+  mix-blend-mode: normal; /* removed screen blend */
 }
 
 /* Message Box Layer */
