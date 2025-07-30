@@ -6,47 +6,197 @@
   <title>The Underground</title>
   <link rel="stylesheet" href="style.css" />
   <style>
+    /* General Terminal Look */
     body {
-      font-family: monospace;
-      background: black;
+      background-color: #111;
       color: #0f0;
+      font-family: monospace;
+      padding: 20px;
     }
+
+    /* Chat Container Wrapper */
+    #chat-container {
+      position: relative;
+      height: 500px;
+      margin-bottom: 10px;
+      border: 1px solid #0f0;
+      overflow: hidden;
+      background-color: #000;
+      box-sizing: border-box;
+    }
+
+    /* Glitch Effect Layer */
+    #chat-bg {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          rgba(0,255,0,0.15),
+          rgba(0,255,0,0.15) 2px,
+          transparent 2px,
+          transparent 4px
+        );
+      animation: glitchLines 1s infinite linear;
+      z-index: 0;
+      filter: drop-shadow(0 0 2px #0f0);
+      mix-blend-mode: screen;
+    }
+
+    /* Message Box Layer */
     #chat-box {
-      max-height: 70vh;
+      position: relative;
+      height: 100%;
+      padding: 5px 10px 20px 10px;
       overflow-y: auto;
-      padding: 10px;
-      border: 1px solid #0f0;
-      margin-bottom: 10px;
-    }
-    .message {
-      margin-bottom: 6px;
-    }
-    .highlighted-user {
-      background: red;
-      color: white;
-    }
-    .edit-btn, .save-btn, .cancel-btn {
-      cursor: pointer;
+      white-space: pre-wrap;
+      background-color: transparent;
+      color: #0f0;
       font-family: monospace;
-      background: none;
-      border: 1px solid #0f0;
+      z-index: 1;
+      box-sizing: border-box;
+      padding-top: 5px;
+      margin-top: -3px;
+    }
+
+    /* Style each message container */
+    #chat-box div {
+      line-height: 1.2;
+      margin-top: 0;
+      padding-top: 0;
+    }
+
+    /* Form Inputs */
+    #chat-form {
+      display: flex;
+      gap: 10px;
+    }
+
+    #chat-form input,
+    #chat-form button {
+      font-family: monospace;
+    }
+
+    /* Media Styling */
+    img.chat-image {
+      max-width: 200px;
+      display: block;
+      margin-top: 5px;
+    }
+
+    video.chat-video,
+    audio.chat-audio {
+      max-width: 200px;
+      display: block;
+      margin-top: 5px;
+    }
+
+    /* Glitch Animation */
+    @keyframes glitchLines {
+      0%, 100% {
+        background-position: 0 0;
+        opacity: 0.7;
+      }
+      50% {
+        background-position: 0 2px;
+        opacity: 1;
+      }
+    }
+
+    /* CRT Style for buttons and selects */
+    button, .edit-btn, .save-btn, .cancel-btn, #change-username, #sendImage {
+      font-family: monospace;
+      font-size: 1em;
+      background-color: black;
       color: #0f0;
-      padding: 2px 6px;
-      margin-left: 4px;
-    }
-    .edit-btn:hover, .save-btn:hover, .cancel-btn:hover {
-      background-color: #0f0;
-      color: #000;
-    }
-    #channel-container {
-      margin-bottom: 10px;
-    }
-    #channel-select {
-      background: #000;
-      color: #0f0;
-      border: 1px solid #0f0;
+      border: 2px solid #0f0;
       padding: 4px 8px;
+      cursor: pointer;
+      text-shadow:
+        0 0 5px #0f0,
+        0 0 10px #0f0,
+        0 0 20px #0f0;
+      user-select: none;
+      transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
     }
+
+    /* Remove default focus outline, add custom glow */
+    button:focus, .edit-btn:focus, .save-btn:focus, .cancel-btn:focus, #change-username:focus, #sendImage:focus {
+      outline: none;
+      box-shadow:
+        0 0 5px #0f0,
+        0 0 10px #0f0,
+        0 0 20px #0f0;
+    }
+
+    /* Hover effect */
+    button:hover, .edit-btn:hover, .save-btn:hover, .cancel-btn:hover, #change-username:hover, #sendImage:hover {
+      background-color: #0f0;
+      color: black;
+      border-color: #0a0;
+      text-shadow: none;
+    }
+
+    /* CRT Style for select dropdowns */
+    select, #channel-select, #online-users-dropdown {
+      font-family: monospace;
+      font-size: 1em;
+      background-color: black;
+      color: #0f0;
+      border: 2px solid #0f0;
+      padding: 4px 8px;
+      cursor: pointer;
+      user-select: none;
+      text-shadow:
+        0 0 5px #0f0,
+        0 0 10px #0f0,
+        0 0 20px #0f0;
+      transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+    }
+
+    /* Remove default focus outline, add custom glow */
+    select:focus, #channel-select:focus, #online-users-dropdown:focus {
+      outline: none;
+      box-shadow:
+        0 0 5px #0f0,
+        0 0 10px #0f0,
+        0 0 20px #0f0;
+    }
+
+    /* Hover effect */
+    select:hover, #channel-select:hover, #online-users-dropdown:hover {
+      background-color: #0f0;
+      color: black;
+      border-color: #0a0;
+      text-shadow: none;
+    }
+
+    /* Custom dropdown arrow for selects */
+    select::-ms-expand {
+      display: none;
+    }
+    select {
+      background-image:
+        linear-gradient(45deg, transparent 50%, #0f0 50%),
+        linear-gradient(135deg, #0f0 50%, transparent 50%),
+        linear-gradient(to right, black, black);
+      background-position:
+        calc(100% - 20px) calc(1em + 2px),
+        calc(100% - 15px) calc(1em + 2px),
+        100% 0;
+      background-size: 5px 5px, 5px 5px, 2.5em 2.5em;
+      background-repeat: no-repeat;
+      padding-right: 30px;
+    }
+
+    /* User dropdown top right */
     #online-users-container {
       position: absolute;
       top: 10px;
@@ -80,7 +230,11 @@
     </select>
   </div>
 
-  <div id="chat-box"></div>
+  <!-- Chat container with glitch background -->
+  <div id="chat-container">
+    <div id="chat-bg"></div>
+    <div id="chat-box"></div>
+  </div>
 
   <form id="chat-form">
     <input type="text" id="message" placeholder="Enter message" required />
@@ -125,10 +279,12 @@
     const changeUsernameBtn = document.getElementById("change-username");
     const channelSelect = document.getElementById("channel-select");
 
+    // Load or ask for username
     let username = localStorage.getItem("username") || prompt("Enter your username:");
     if (!username) username = "Anonymous";
     localStorage.setItem("username", username);
 
+    // Change username
     changeUsernameBtn.addEventListener("click", () => {
       const newName = prompt("Enter new username:", username);
       if (newName && newName.trim() !== "") {
@@ -137,6 +293,7 @@
       }
     });
 
+    // Channel logic
     let currentChannel = localStorage.getItem("channel") || "general";
     channelSelect.value = currentChannel;
     localStorage.setItem("channel", currentChannel);
@@ -172,11 +329,11 @@
 
       if (val.media && val.mediaType) {
         if (val.mediaType.startsWith("image/")) {
-          messageContent = `<img src="${val.media}" style="max-width:200px; max-height:150px;" alt="image"/>`;
+          messageContent = `<img src="${val.media}" class="chat-image" alt="image"/>`;
         } else if (val.mediaType === "video/mp4") {
-          messageContent = `<video controls style="max-width:300px; max-height:200px;"><source src="${val.media}" type="video/mp4" /></video>`;
+          messageContent = `<video controls class="chat-video"><source src="${val.media}" type="video/mp4" /></video>`;
         } else if (val.mediaType === "audio/mpeg") {
-          messageContent = `<audio controls><source src="${val.media}" type="audio/mpeg" /></audio>`;
+          messageContent = `<audio controls class="chat-audio"><source src="${val.media}" type="audio/mpeg" /></audio>`;
         } else {
           messageContent = val.message || "";
         }
