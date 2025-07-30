@@ -6,7 +6,7 @@
   <title>The Underground</title>
   <link rel="stylesheet" href="style.css" />
   <style>
-    /* General Terminal Look */
+    /* ========== GENERAL STYLES ========== */
     body {
       background-color: #111;
       color: #0f0;
@@ -14,7 +14,7 @@
       padding: 20px;
     }
 
-    /* Chat Container Wrapper */
+    /* ========== CHAT CONTAINER (Wrapper for glitch bg + messages) ========== */
     #chat-container {
       position: relative;
       height: 500px;
@@ -25,7 +25,7 @@
       box-sizing: border-box;
     }
 
-    /* Glitch Effect Layer */
+    /* ========== GLITCH EFFECT BACKGROUND LAYER ========== */
     #chat-bg {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -44,30 +44,30 @@
       mix-blend-mode: screen;
     }
 
-    /* Message Box Layer */
+    /* ========== CHAT BOX (Messages display area) ========== */
     #chat-box {
       position: relative;
       height: 100%;
-      padding: 5px 10px 20px 10px;
+      padding: 5px 10px 20px 10px; /* padding with extra bottom space */
       overflow-y: auto;
       white-space: pre-wrap;
       background-color: transparent;
       color: #0f0;
       font-family: monospace;
-      z-index: 1;
+      z-index: 1; /* Above glitch bg */
       box-sizing: border-box;
       padding-top: 5px;
-      margin-top: -3px;
+      margin-top: -3px; /* Pull content slightly up */
     }
 
-    /* Style each message container */
+    /* Style each message container inside chat box */
     #chat-box div {
       line-height: 1.2;
       margin-top: 0;
       padding-top: 0;
     }
 
-    /* Form Inputs */
+    /* ========== FORM AND INPUTS ========== */
     #chat-form {
       display: flex;
       gap: 10px;
@@ -78,7 +78,7 @@
       font-family: monospace;
     }
 
-    /* Media Styling */
+    /* ========== MEDIA ELEMENTS STYLING (images, video, audio) ========== */
     img.chat-image {
       max-width: 200px;
       display: block;
@@ -92,7 +92,7 @@
       margin-top: 5px;
     }
 
-    /* Glitch Animation */
+    /* ========== GLITCH ANIMATION KEYFRAMES ========== */
     @keyframes glitchLines {
       0%, 100% {
         background-position: 0 0;
@@ -104,7 +104,7 @@
       }
     }
 
-    /* CRT Style for buttons and selects */
+    /* ========== BUTTONS & SELECTS (CRT Style) ========== */
     button, .edit-btn, .save-btn, .cancel-btn, #change-username, #sendImage {
       font-family: monospace;
       font-size: 1em;
@@ -124,7 +124,7 @@
       appearance: none;
     }
 
-    /* Remove default focus outline, add custom glow */
+    /* Focus glow for buttons and selects */
     button:focus, .edit-btn:focus, .save-btn:focus, .cancel-btn:focus, #change-username:focus, #sendImage:focus {
       outline: none;
       box-shadow:
@@ -133,7 +133,7 @@
         0 0 20px #0f0;
     }
 
-    /* Hover effect */
+    /* Hover effect for buttons */
     button:hover, .edit-btn:hover, .save-btn:hover, .cancel-btn:hover, #change-username:hover, #sendImage:hover {
       background-color: #0f0;
       color: black;
@@ -141,7 +141,7 @@
       text-shadow: none;
     }
 
-    /* CRT Style for select dropdowns */
+    /* ========== SELECT DROPDOWNS ========== */
     select, #channel-select, #online-users-dropdown {
       font-family: monospace;
       font-size: 1em;
@@ -161,7 +161,7 @@
       appearance: none;
     }
 
-    /* Remove default focus outline, add custom glow */
+    /* Focus glow for selects */
     select:focus, #channel-select:focus, #online-users-dropdown:focus {
       outline: none;
       box-shadow:
@@ -170,7 +170,7 @@
         0 0 20px #0f0;
     }
 
-    /* Hover effect */
+    /* Hover effect for selects */
     select:hover, #channel-select:hover, #online-users-dropdown:hover {
       background-color: #0f0;
       color: black;
@@ -196,7 +196,7 @@
       padding-right: 30px;
     }
 
-    /* User dropdown top right */
+    /* ========== ONLINE USERS DROPDOWN CONTAINER (TOP RIGHT) ========== */
     #online-users-container {
       position: absolute;
       top: 10px;
@@ -209,10 +209,12 @@
   </style>
 </head>
 <body>
+  <!-- ========== PAGE TITLE & USER INFO ========== -->
   <h1>The Underground</h1>
   <p id="user-count">Users online: 0</p>
   <button id="change-username">Change Username</button>
 
+  <!-- ========== CHANNEL SELECTION DROPDOWN ========== -->
   <div id="channel-container">
     <label for="channel-select">Select Channel:</label>
     <select id="channel-select">
@@ -223,6 +225,7 @@
     </select>
   </div>
 
+  <!-- ========== ONLINE USERS DROPDOWN (TOP RIGHT) ========== -->
   <div id="online-users-container">
     Online Users:
     <select id="online-users-dropdown" size="1">
@@ -230,12 +233,13 @@
     </select>
   </div>
 
-  <!-- Chat container with glitch background -->
+  <!-- ========== CHAT AREA WITH GLITCH BACKGROUND ========== -->
   <div id="chat-container">
-    <div id="chat-bg"></div>
-    <div id="chat-box"></div>
+    <div id="chat-bg"></div>   <!-- Glitch lines background -->
+    <div id="chat-box"></div>  <!-- Messages container -->
   </div>
 
+  <!-- ========== MESSAGE INPUT FORM ========== -->
   <form id="chat-form">
     <input type="text" id="message" placeholder="Enter message" required />
     <button type="submit">Send</button>
@@ -243,6 +247,7 @@
     <button type="button" id="sendImage">Send Image</button>
   </form>
 
+  <!-- ========== JAVASCRIPT FOR CHAT FUNCTIONALITY ========== -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
     import {
@@ -256,6 +261,7 @@
       update
     } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyCEnayZ7B7VYH_55IKjdRGriey5ffdPqRA",
       authDomain: "log-7281.firebaseapp.com",
@@ -266,9 +272,11 @@
       appId: "1:997557129411:web:ef247b0fff165df2ef9276",
     };
 
+    // Initialize Firebase app and database
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
+    // DOM elements
     const chatBox = document.getElementById("chat-box");
     const chatForm = document.getElementById("chat-form");
     const messageInput = document.getElementById("message");
@@ -284,7 +292,7 @@
     if (!username) username = "Anonymous";
     localStorage.setItem("username", username);
 
-    // Change username
+    // Change username button handler
     changeUsernameBtn.addEventListener("click", () => {
       const newName = prompt("Enter new username:", username);
       if (newName && newName.trim() !== "") {
@@ -293,7 +301,7 @@
       }
     });
 
-    // Channel logic
+    // Channel management
     let currentChannel = localStorage.getItem("channel") || "general";
     channelSelect.value = currentChannel;
     localStorage.setItem("channel", currentChannel);
@@ -305,10 +313,12 @@
     let messagesRef = getMessagesRef(currentChannel);
     let unsubscribeMessages = null;
 
+    // Clear chat messages UI
     function clearMessages() {
       chatBox.innerHTML = "";
     }
 
+    // Format timestamp as hh:mm AM/PM
     function formatTimestamp(ts) {
       const date = new Date(ts);
       const h = date.getHours();
@@ -318,6 +328,7 @@
       return `${hour12}:${m} ${ampm}`;
     }
 
+    // Create a message element with support for editing and media
     function createMessageElement(key, val) {
       const div = document.createElement("div");
       div.className = "message";
@@ -345,6 +356,7 @@
 
       div.innerHTML = `[${timeStr}] <strong>${val.username}:</strong> <span class="msg-content">${messageContent}</span>`;
 
+      // Add edit button if own text message
       if (val.username === username && !val.media) {
         const editBtn = document.createElement("button");
         editBtn.className = "edit-btn";
@@ -356,6 +368,7 @@
       return div;
     }
 
+    // Enter edit mode for a message
     function enterEditMode(div, key, val) {
       const contentSpan = div.querySelector(".msg-content");
       const editBtn = div.querySelector(".edit-btn");
@@ -407,6 +420,7 @@
       }
     }
 
+    // Start listening to messages on a channel
     function startListeningToChannel(channel) {
       if (unsubscribeMessages) unsubscribeMessages();
       clearMessages();
@@ -424,17 +438,20 @@
 
     startListeningToChannel(currentChannel);
 
+    // Handle channel change
     channelSelect.addEventListener("change", () => {
       currentChannel = channelSelect.value;
       localStorage.setItem("channel", currentChannel);
       startListeningToChannel(currentChannel);
     });
 
+    // Manage online users presence in Firebase
     const connectionsRef = ref(db, "connections");
     const userRef = push(connectionsRef);
     set(userRef, username);
     onDisconnect(userRef).remove();
 
+    // Update online users count and dropdown
     onValue(connectionsRef, (snapshot) => {
       const users = snapshot.val() || {};
       userCount.innerText = `Users online: ${Object.keys(users).length}`;
@@ -448,6 +465,7 @@
       }
     });
 
+    // Highlight messages by selected user
     userDropdown.addEventListener("change", () => {
       const selectedUser = userDropdown.value;
       document.querySelectorAll(".message").forEach(msg => {
@@ -459,6 +477,7 @@
       });
     });
 
+    // Send text message handler
     chatForm.addEventListener("submit", (e) => {
       e.preventDefault();
       const text = messageInput.value.trim();
@@ -473,6 +492,7 @@
       messageInput.value = "";
     });
 
+    // Send media image/video/audio handler
     sendImageBtn.addEventListener("click", () => imageInput.click());
 
     imageInput.addEventListener("change", () => {
