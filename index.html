@@ -47,6 +47,15 @@
       border: 1px solid #0f0;
       padding: 4px 8px;
     }
+    #online-users-container {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: black;
+      border: 1px solid #0f0;
+      padding: 4px 8px;
+      z-index: 100;
+    }
   </style>
 </head>
 <body>
@@ -54,7 +63,6 @@
   <p id="user-count">Users online: 0</p>
   <button id="change-username">Change Username</button>
 
-  <!-- ✅ Channel selector -->
   <div id="channel-container">
     <label for="channel-select">Select Channel:</label>
     <select id="channel-select">
@@ -96,12 +104,12 @@
 
     const firebaseConfig = {
       apiKey: "AIzaSyCEnayZ7B7VYH_55IKjdRGriey5ffdPqRA",
-  authDomain: "log-7281.firebaseapp.com",
-  databaseURL: "https://log-7281-default-rtdb.firebaseio.com",
-  projectId: "log-7281",
-  storageBucket: "log-7281.firebasestorage.app",
-  messagingSenderId: "997557129411",
-  appId: "1:997557129411:web:ef247b0fff165df2ef9276",
+      authDomain: "log-7281.firebaseapp.com",
+      databaseURL: "https://log-7281-default-rtdb.firebaseio.com",
+      projectId: "log-7281",
+      storageBucket: "log-7281.firebasestorage.app",
+      messagingSenderId: "997557129411",
+      appId: "1:997557129411:web:ef247b0fff165df2ef9276",
     };
 
     const app = initializeApp(firebaseConfig);
@@ -117,12 +125,10 @@
     const changeUsernameBtn = document.getElementById("change-username");
     const channelSelect = document.getElementById("channel-select");
 
-    // Load or ask for username
     let username = localStorage.getItem("username") || prompt("Enter your username:");
     if (!username) username = "Anonymous";
     localStorage.setItem("username", username);
 
-    // Change username
     changeUsernameBtn.addEventListener("click", () => {
       const newName = prompt("Enter new username:", username);
       if (newName && newName.trim() !== "") {
@@ -131,7 +137,6 @@
       }
     });
 
-    // Channel logic
     let currentChannel = localStorage.getItem("channel") || "general";
     channelSelect.value = currentChannel;
     localStorage.setItem("channel", currentChannel);
@@ -143,12 +148,10 @@
     let messagesRef = getMessagesRef(currentChannel);
     let unsubscribeMessages = null;
 
-    // Clear messages
     function clearMessages() {
       chatBox.innerHTML = "";
     }
 
-    // Format timestamp nicely
     function formatTimestamp(ts) {
       const date = new Date(ts);
       const h = date.getHours();
@@ -158,7 +161,6 @@
       return `${hour12}:${m} ${ampm}`;
     }
 
-    // Create message element with edit support and media
     function createMessageElement(key, val) {
       const div = document.createElement("div");
       div.className = "message";
@@ -168,7 +170,6 @@
       const timeStr = val.timestamp ? formatTimestamp(val.timestamp) : "";
       let messageContent = "";
 
-      // Support media messages (image, video, audio)
       if (val.media && val.mediaType) {
         if (val.mediaType.startsWith("image/")) {
           messageContent = `<img src="${val.media}" style="max-width:200px; max-height:150px;" alt="image"/>`;
@@ -180,7 +181,6 @@
           messageContent = val.message || "";
         }
       } else {
-        // Escape HTML for safety
         const divTemp = document.createElement("div");
         divTemp.textContent = val.message || "";
         messageContent = divTemp.innerHTML;
@@ -188,7 +188,6 @@
 
       div.innerHTML = `[${timeStr}] <strong>${val.username}:</strong> <span class="msg-content">${messageContent}</span>`;
 
-      // Add edit button only for own messages and if message is text (not media)
       if (val.username === username && !val.media) {
         const editBtn = document.createElement("button");
         editBtn.className = "edit-btn";
@@ -217,7 +216,6 @@
       cancelBtn.className = "cancel-btn";
       cancelBtn.textContent = "Cancel";
 
-      // Hide original content and edit button
       contentSpan.style.display = "none";
       editBtn.style.display = "none";
 
@@ -252,7 +250,6 @@
       }
     }
 
-    // Listen for messages in current channel
     function startListeningToChannel(channel) {
       if (unsubscribeMessages) unsubscribeMessages();
       clearMessages();
@@ -263,7 +260,6 @@
         const key = data.key;
         const div = createMessageElement(key, val);
         chatBox.appendChild(div);
-        // Auto scroll if near bottom
         const nearBottom = chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight < 100;
         if (nearBottom) chatBox.scrollTop = chatBox.scrollHeight;
       });
@@ -277,7 +273,6 @@
       startListeningToChannel(currentChannel);
     });
 
-    // Manage online users presence
     const connectionsRef = ref(db, "connections");
     const userRef = push(connectionsRef);
     set(userRef, username);
@@ -296,7 +291,6 @@
       }
     });
 
-    // Highlight messages from selected user
     userDropdown.addEventListener("change", () => {
       const selectedUser = userDropdown.value;
       document.querySelectorAll(".message").forEach(msg => {
@@ -308,7 +302,6 @@
       });
     });
 
-    // Send text message
     chatForm.addEventListener("submit", (e) => {
       e.preventDefault();
       const text = messageInput.value.trim();
@@ -323,7 +316,6 @@
       messageInput.value = "";
     });
 
-    // Send image/video/audio
     sendImageBtn.addEventListener("click", () => imageInput.click());
 
     imageInput.addEventListener("change", () => {
