@@ -252,24 +252,6 @@
       color: black;
     }
 
-    /* ========== TYPING INDICATOR ANIMATION ========== */
-    #typing-indicator {
-      font-style: italic;
-      margin-top: 6px;
-      color: #0f0;
-      opacity: 0.7;
-      font-size: 0.9em;
-      font-family: monospace;
-      animation: blinkTyping 1.4s infinite;
-    }
-
-    @keyframes blinkTyping {
-      0%, 100% { opacity: 0.7; }
-      50% { opacity: 0.3; }
-    }
-  </style>
-</head>
-<body>
   <!-- CRT LOGIN SCREEN -->
   <div id="crt-login">
     <div id="crt-boot-text">BOOTING SYSTEM...</div>
@@ -373,14 +355,28 @@
     let userRef = null;
 
     // --- PRESENCE MANAGEMENT ---
-    function setUserPresence(name) {
-      if (userRef) remove(userRef).catch(() => {});
-      const safeName = sanitizeUsername(name);
-      userRef = ref(db, `users/${safeName}`);
-      onDisconnect(userRef).remove();
-      set(userRef, { online: true, lastOnline: Date.now() });
-    }
-    setUserPresence(username);
+    const connectionsRef = ref(db, "connections");
+const connectedRef = ref(db, ".info/connected");
+let myConnectionRef = null;
+
+onValue(connectedRef, (snap) => {
+  if (snap.val() === true) {
+    myConnectionRef = push(connectionsRef);
+    set(myConnectionRef, username);
+    onDisconnect(myConnectionRef).remove();
+  }
+});
+
+onValue(connectionsRef, (snapshot) => {
+  const connections = snapshot.val() || {};
+  const seen = new Set();
+  const usernames = Object.values(connections).filter(user => {
+    return typeof user === 'string' && user.trim() !== '' && !seen.has(user) && seen.add(user);
+  });
+  userCount.textContent = `Users online: ${usernames.length}`;
+  updateOnlineUsersList(usernames);
+});
+
 
     window.addEventListener("beforeunload", () => {
       if (userRef) remove(userRef);
