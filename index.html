@@ -25,15 +25,19 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      font-family: monospace;
       z-index: 9999;
       transition: opacity 2s ease;
       overflow: hidden;
       animation: crtFlickerScreen 1.2s ease-in;
     }
+
     #crt-login.faded {
       opacity: 0 !important;
       pointer-events: none;
+      transition: opacity 2s ease;
     }
+
     #crt-boot-text {
       font-size: 1.5em;
       text-shadow: 0 0 10px #0f0, 0 0 20px #0f0;
@@ -41,6 +45,7 @@
       opacity: 0;
       animation: bootTextFlicker 3s forwards;
     }
+
     #power-button {
       font-size: 1.2em;
       background-color: black;
@@ -50,16 +55,23 @@
       cursor: pointer;
       text-shadow: 0 0 5px #0f0, 0 0 15px #0f0;
     }
+
     #power-button:hover {
       background-color: #0f0;
       color: black;
       text-shadow: none;
     }
+
     @keyframes bootTextFlicker {
-      0% { opacity: 0; } 10% { opacity: 1; } 20% { opacity: 0.2; }
-      40% { opacity: 1; } 60% { opacity: 0.4; } 80% { opacity: 1; }
+      0% { opacity: 0; }
+      10% { opacity: 1; }
+      20% { opacity: 0.2; }
+      40% { opacity: 1; }
+      60% { opacity: 0.4; }
+      80% { opacity: 1; }
       100% { opacity: 1; }
     }
+
     @keyframes crtFlickerScreen {
       0% { opacity: 0; transform: scaleY(0.1); }
       20% { opacity: 1; transform: scaleY(1.2); }
@@ -69,105 +81,196 @@
       100% { opacity: 1; transform: scaleY(1); }
     }
 
-    /* ========== ONLINE USERS DROPDOWN (TOP RIGHT) ========== */
+    /* ========== ONLINE USERS DROPDOWN CONTAINER (TOP RIGHT) ========== */
     #online-users-container {
       position: absolute;
-      top: 10px; right: 10px;
-      background: black; border: 1px solid #0f0;
-      padding: 4px 8px; z-index: 100;
+      top: 10px;
+      right: 10px;
+      background: black;
+      border: 1px solid #0f0;
+      padding: 4px 8px;
+      z-index: 100;
     }
 
     /* ========== CHAT STYLES ========== */
     #chat-container {
       position: relative;
-      max-width: 800px; margin: 20px auto;
-      border: 1px solid #0f0; background: #000;
-      overflow: hidden; font-size: 14px; line-height: 1.4em;
+      width: 100%;
+      max-width: 800px;
+      margin: 20px auto;
+      border: 1px solid #0f0;
+      background: #000;
+      overflow: hidden;
+      font-size: 14px;
+      line-height: 1.4em;
     }
+
     #chat-noise {
-      position: absolute; inset: 0;
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
       background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAYAAjCB0C8AAAAASUVORK5CYII=') repeat;
-      opacity: 0.04; pointer-events: none; z-index: 2;
+      opacity: 0.04;
+      pointer-events: none;
+      z-index: 2;
       animation: noiseAnim 1s steps(10) infinite;
     }
+
     @keyframes noiseAnim {
-      0%,100%{background-position:0 0;}50%{background-position:100% 100%;}
+      0%, 100% { background-position: 0 0; }
+      50% { background-position: 100% 100%; }
     }
 
     #chat-box {
-      padding: 10px; max-height: 400px; overflow-y: auto;
-      z-index: 3; color: #0f0; font-family: monospace;
-      white-space: pre-wrap; word-wrap: break-word;
-      scrollbar-width: thin; scrollbar-color: #0f0 transparent;
+      position: relative;
+      padding: 10px;
+      max-height: 400px;
+      overflow-y: auto;
+      z-index: 3;
+      color: #0f0;
+      font-family: monospace;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      scrollbar-width: thin;
+      scrollbar-color: #0f0 transparent;
     }
-    #chat-box::-webkit-scrollbar { width:8px; }
+
+    #chat-box::-webkit-scrollbar {
+      width: 8px;
+    }
+
     #chat-box::-webkit-scrollbar-thumb {
-      background-color: #0f0; border-radius:4px;
+      background-color: #0f0;
+      border-radius: 4px;
     }
 
     .message {
-      margin-bottom:8px; padding:2px 4px;
-      border-radius:3px; position:relative;
-    }
-    .message.highlighted-user {
-      background-color: rgba(255,0,0,0.3);
-      color: #f00; font-weight: bold;
+      margin-bottom: 8px;
+      padding: 2px 4px;
+      border-radius: 3px;
+      cursor: default;
+      position: relative;
     }
 
-    .chat-image, .chat-video, .chat-audio {
-      display:block; margin-top:2px; border:1px solid #0f0;
-      border-radius:4px;
+    .message.highlighted-user {
+      background-color: rgba(255, 0, 0, 0.3);
+      color: #f00;
+      font-weight: bold;
     }
-    .chat-image { max-width:200px; max-height:150px; }
-    .chat-video { max-width:300px; }
-    .chat-audio { max-width:200px; }
+
+    .chat-image {
+      max-width: 200px;
+      max-height: 150px;
+      border: 1px solid #0f0;
+      border-radius: 4px;
+      display: block;
+      margin-top: 2px;
+    }
+
+    .chat-video {
+      max-width: 300px;
+      border: 1px solid #0f0;
+      border-radius: 4px;
+      margin-top: 2px;
+    }
+
+    .chat-audio {
+      max-width: 200px;
+      margin-top: 2px;
+    }
 
     .edit-btn, .save-btn, .cancel-btn {
-      background:transparent; border:1px solid #0f0; color:#0f0;
-      cursor:pointer; font-size:0.8em; margin-left:6px;
-      padding:1px 6px; border-radius:3px;
+      background: transparent;
+      border: 1px solid #0f0;
+      color: #0f0;
+      cursor: pointer;
+      font-size: 0.8em;
+      margin-left: 6px;
+      padding: 1px 6px;
+      border-radius: 3px;
+      user-select: none;
     }
+
     .edit-btn:hover, .save-btn:hover, .cancel-btn:hover {
-      background: #0f0; color:black;
+      background: #0f0;
+      color: black;
     }
+
     .edit-input {
-      background:black; border:1px solid #0f0; color:#0f0;
-      font-family:monospace; font-size:1em; padding:2px 4px;
-      margin-left:6px; width:60%; border-radius:3px;
+      background: black;
+      border: 1px solid #0f0;
+      color: #0f0;
+      font-family: monospace;
+      font-size: 1em;
+      padding: 2px 4px;
+      margin-left: 6px;
+      width: 60%;
+      border-radius: 3px;
     }
 
-    /* ========== MESSAGE INPUT FORM ========== */
+    /* ========== MESSAGE INPUT FORM STYLES ========== */
     #chat-form {
-      margin:10px auto; max-width:800px;
-      display:flex; gap:8px;
+      margin: 10px auto;
+      max-width: 800px;
+      display: flex;
+      gap: 8px;
     }
-    #chat-form input[type="text"] {
-      flex-grow:1; background:black; border:2px solid #0f0;
-      color:#0f0; font-family:monospace; font-size:1em;
-      padding:6px 10px; border-radius:4px;
-      caret-color:#0f0; outline-offset:2px; outline-color:#0f0;
-    }
-    #chat-form input::placeholder { color:#0f0; opacity:0.6; }
-    #chat-form button {
-      background:black; border:2px solid #0f0; color:#0f0;
-      font-family:monospace; font-size:1em;
-      padding:6px 12px; border-radius:4px; cursor:pointer;
-      transition:background-color 0.3s ease, color 0.3s ease;
-    }
-    #chat-form button:hover { background:#0f0; color:black; }
 
-    /* ========== TYPING INDICATOR ========== */
-    #typing-indicator {
-      font-style:italic; margin-top:6px; color:#0f0;
-      opacity:0.7; font-size:0.9em; font-family:monospace;
-      animation:blinkTyping 1.4s infinite;
+    #chat-form input[type="text"] {
+      flex-grow: 1;
+      background: black;
+      border: 2px solid #0f0;
+      color: #0f0;
+      font-family: monospace;
+      font-size: 1em;
+      padding: 6px 10px;
+      border-radius: 4px;
+      caret-color: #0f0;
+      outline-offset: 2px;
+      outline-color: #0f0;
     }
+
+    #chat-form input[type="text"]::placeholder {
+      color: #0f0;
+      opacity: 0.6;
+    }
+
+    #chat-form button {
+      background: black;
+      border: 2px solid #0f0;
+      color: #0f0;
+      font-family: monospace;
+      font-size: 1em;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    #chat-form button:hover {
+      background: #0f0;
+      color: black;
+    }
+
+    /* ========== TYPING INDICATOR ANIMATION ========== */
+    #typing-indicator {
+      font-style: italic;
+      margin-top: 6px;
+      color: #0f0;
+      opacity: 0.7;
+      font-size: 0.9em;
+      font-family: monospace;
+      animation: blinkTyping 1.4s infinite;
+    }
+
     @keyframes blinkTyping {
-      0%,100%{opacity:0.7;}50%{opacity:0.3;}
+      0%, 100% { opacity: 0.7; }
+      50% { opacity: 0.3; }
     }
   </style>
 </head>
 <body>
+  <!-- CRT LOGIN SCREEN -->
   <div id="crt-login">
     <div id="crt-boot-text">BOOTING SYSTEM...</div>
     <button id="power-button">[ ON ]</button>
@@ -187,6 +290,7 @@
     </select>
   </div>
 
+  <!-- Online users dropdown top right -->
   <div id="online-users-container">
     Online Users:
     <select id="online-users-dropdown" size="1">
@@ -211,196 +315,421 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
     import {
-      getDatabase, ref, push,
-      onChildAdded, onChildChanged, set,
-      onValue, onDisconnect, update, remove
+      getDatabase,
+      ref,
+      push,
+      onChildAdded,
+      set,
+      onValue,
+      onDisconnect,
+      update,
+      remove,
+      onChildChanged,
     } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-    // --- Firebase init ---
+    // Firebase config (fill your own keys here)
     const firebaseConfig = {
-      apiKey: "...", authDomain: "...",
-      databaseURL: "...", projectId: "...",
-      storageBucket: "...", messagingSenderId: "...",
-      appId: "...", measurementId: "..."
+      apiKey: "AIzaSyCEnayZ7B7VYH_55IKjdRGriey5ffdPqRA",
+      authDomain: "log-7281.firebaseapp.com",
+      databaseURL: "https://log-7281-default-rtdb.firebaseio.com",
+      projectId: "log-7281",
+      storageBucket: "log-7281.appspot.com",
+      messagingSenderId: "997557129411",
+      appId: "1:997557129411:web:ef247b0fff165df2ef9276",
+      measurementId: "G-XN81DDCYWY"
     };
+
     const app = initializeApp(firebaseConfig);
-    const db  = getDatabase(app);
+    const db = getDatabase(app);
 
-    // --- UI elements ---
-    const chatBox         = document.getElementById("chat-box");
-    const chatForm        = document.getElementById("chat-form");
-    const messageInput    = document.getElementById("message");
-    const imageInput      = document.getElementById("imageInput");
-    const sendImageBtn    = document.getElementById("sendImage");
-    const userCount       = document.getElementById("user-count");
-    const userDropdown    = document.getElementById("online-users-dropdown");
+    // Elements
+    const chatBox = document.getElementById("chat-box");
+    const chatForm = document.getElementById("chat-form");
+    const messageInput = document.getElementById("message");
+    const imageInput = document.getElementById("imageInput");
+    const sendImageBtn = document.getElementById("sendImage");
+    const userCount = document.getElementById("user-count");
+    const userDropdown = document.getElementById("online-users-dropdown");
     const changeUsernameBtn = document.getElementById("change-username");
-    const channelSelect   = document.getElementById("channel-select");
+    const channelSelect = document.getElementById("channel-select");
     const typingIndicator = document.getElementById("typing-indicator");
-    const loginOverlay    = document.getElementById("crt-login");
-    const powerButton     = document.getElementById("power-button");
+    const loginOverlay = document.getElementById("crt-login");
+    const powerButton = document.getElementById("power-button");
 
-    // --- State ---
-    let username       = localStorage.getItem("username") || prompt("Enter your username:") || "Anonymous";
-    let currentChannel = localStorage.getItem("channel") || "general";
+    // Username & channel state
+    let username = localStorage.getItem("username") || prompt("Enter your username:") || "Anonymous";
     localStorage.setItem("username", username);
+
+    let currentChannel = localStorage.getItem("channel") || "general";
     channelSelect.value = currentChannel;
     localStorage.setItem("channel", currentChannel);
 
-    // --- Sanitize function ---
-    function sanitizeUsername(name) {
-      return name.replace(/[.#$\[\]]/g, "_");
+    // User presence reference
+    let userRef = null;
+
+    // --- PRESENCE MANAGEMENT ---
+    async function setUserPresence(name) {
+      if (userRef) {
+        try {
+          await remove(userRef);
+        } catch (e) {
+          console.warn("Error removing previous presence:", e);
+        }
+      }
+      userRef = ref(db, `users/${name}`);
+      try {
+        await set(userRef, { online: true, lastOnline: Date.now() });
+        await onDisconnect(userRef).remove();
+      } catch (e) {
+        console.error("Error setting presence or onDisconnect:", e);
+      }
     }
 
-    // --- Presence management ---
-    let userRef = null;
-    function setUserPresence(name) {
-      if (userRef) remove(userRef).catch(console.warn);
-      const safeName = sanitizeUsername(name);
-      userRef = ref(db, `users/${safeName}`);
-      onDisconnect(userRef).remove();
-      set(userRef, { online: true, lastOnline: Date.now() });
-    }
     setUserPresence(username);
-    window.addEventListener("beforeunload", () => {
-      if (userRef) remove(userRef);
+
+    window.addEventListener("beforeunload", async () => {
+      if (userRef) {
+        try {
+          await remove(userRef);
+        } catch (e) {
+          console.warn("Error removing presence on unload:", e);
+        }
+      }
     });
-    changeUsernameBtn.addEventListener("click", () => {
+
+    changeUsernameBtn.addEventListener("click", async () => {
       const newName = prompt("Enter new username:", username);
       if (newName && newName.trim() !== "" && newName !== username) {
-        remove(userRef).catch(console.warn);
-        username = newName.trim();
-        localStorage.setItem("username", username);
-        setUserPresence(username);
-        highlightSelectedUserMessages();
+        try {
+          if (userRef) await remove(userRef);
+          username = newName.trim();
+          localStorage.setItem("username", username);
+          await setUserPresence(username);
+          highlightSelectedUserMessages();
+        } catch (e) {
+          console.error("Error changing username presence:", e);
+        }
       }
     });
 
-    // --- Online users listener ---
-    const usersRef = ref(db, "users");
-    onValue(usersRef, snap => {
-      const data = snap.val() || {};
-      const list = Object.keys(data);
-      userCount.textContent = `Users online: ${list.length}`;
-      userDropdown.innerHTML = '<option value="">-- Select User --</option>';
-      list.forEach(u => {
-        const opt = document.createElement("option");
-        opt.value = u; opt.textContent = u;
-        userDropdown.appendChild(opt);
-      });
+    channelSelect.addEventListener("change", () => {
+      const newChannel = channelSelect.value;
+      if (newChannel !== currentChannel) {
+        currentChannel = newChannel;
+        localStorage.setItem("channel", currentChannel);
+        unsubscribeMessages();
+        clearMessages();
+        subscribeMessages(currentChannel);
+      }
     });
 
-    // --- Message handling ---
-    function getMessagesRef(ch) { return ref(db, `channels/${ch}/messages`); }
-    let msgRef = getMessagesRef(currentChannel);
+    // --- MESSAGES MANAGEMENT ---
+    let messagesRef = null;
+    let unsubscribeMessagesFn = null;
+
+    function getMessagesRef(channel) {
+      return ref(db, `channels/${channel}/messages`);
+    }
+
+    function clearMessages() {
+      chatBox.innerHTML = "";
+    }
+
+    // Store messages for editing/highlighting
+    const messageDataMap = new Map();
 
     function formatTimestamp(ts) {
-      const d = new Date(ts);
-      const h = d.getHours(), m = String(d.getMinutes()).padStart(2,"0");
-      return `${(h%12||12)}:${m} ${h>=12?"PM":"AM"}`;
+      const date = new Date(ts);
+      const h = date.getHours();
+      const m = date.getMinutes().toString().padStart(2, "0");
+      const ampm = h >= 12 ? "PM" : "AM";
+      const hour12 = (h % 12) || 12;
+      return `${hour12}:${m} ${ampm}`;
     }
-    function createMessageElement(key,val) {
+
+    function createMessageElement(key, val) {
       const div = document.createElement("div");
-      div.className = "message"; div.dataset.id = key;
-      div.dataset.user = val.username;
-      const content = val.media
-        ? (val.mediaType.startsWith("image/") 
-            ? `<img src="${val.media}" class="chat-image"/>`
-            : val.mediaType==="video/mp4"
-              ? `<video controls class="chat-video"><source src="${val.media}"/></video>`
-              : `<audio controls class="chat-audio"><source src="${val.media}"/></audio>`)
-        : val.message;
-      div.innerHTML = `[${formatTimestamp(val.timestamp)}] <strong>${val.username}:</strong> <span class="msg-content">${content}</span>`;
-      if(val.username===username && !val.media) {
-        const btn = document.createElement("button");
-        btn.className="edit-btn"; btn.textContent="Edit";
-        btn.onclick = ()=>enterEditMode(div,key,val);
-        div.appendChild(btn);
+      div.className = "message";
+      div.dataset.id = key;
+      div.dataset.user = val.username || "Anonymous";
+
+      const timeStr = val.timestamp ? formatTimestamp(val.timestamp) : "";
+      let messageContent = "";
+
+      if (val.media && val.mediaType) {
+        if (val.mediaType.startsWith("image/")) {
+          messageContent = `<img src="${val.media}" class="chat-image" alt="image"/>`;
+        } else if (val.mediaType === "video/mp4") {
+          messageContent = `<video controls class="chat-video"><source src="${val.media}" type="video/mp4" /></video>`;
+        } else if (val.mediaType === "audio/mpeg") {
+          messageContent = `<audio controls class="chat-audio"><source src="${val.media}" type="audio/mpeg" /></audio>`;
+        } else {
+          messageContent = val.message || "";
+        }
+      } else {
+        const divTemp = document.createElement("div");
+        divTemp.textContent = val.message || "";
+        messageContent = divTemp.innerHTML;
       }
-      if(selectedUser===val.username) div.classList.add("highlighted-user");
+
+      div.innerHTML = `[${timeStr}] <strong>${val.username}:</strong> <span class="msg-content">${messageContent}</span>`;
+
+      // Edit button only for own messages without media
+      if (val.username === username && !val.media) {
+        const editBtn = document.createElement("button");
+        editBtn.className = "edit-btn";
+        editBtn.textContent = "Edit";
+        editBtn.onclick = () => enterEditMode(div, key, val);
+        div.appendChild(editBtn);
+      }
+
+      // Reactions container
+      const reactionsContainer = document.createElement("span");
+      reactionsContainer.className = "reactions-container";
+      if (val.reactions) {
+        for (const [reaction, users] of Object.entries(val.reactions)) {
+          const count = Object.keys(users).length;
+          if (count > 0) {
+            const reactionBtn = document.createElement("button");
+            reactionBtn.className = "reaction-btn";
+            reactionBtn.textContent = `${reaction} ${count}`;
+            reactionBtn.onclick = () => toggleReaction(key, reaction);
+            reactionsContainer.appendChild(reactionBtn);
+          }
+        }
+      }
+      div.appendChild(reactionsContainer);
+
+      // Highlight if selected user
+      if (selectedUser && val.username === selectedUser) {
+        div.classList.add("highlighted-user");
+      }
+
       return div;
     }
-    function subscribeMessages(ch) {
-      msgRef = getMessagesRef(ch);
-      onChildAdded(msgRef, s => {
-        chatBox.appendChild(createMessageElement(s.key,s.val()));
+
+    // Typing indicator logic (simplified)
+    let typingTimeout = null;
+    let typingRef = ref(db, "typing/" + currentChannel);
+
+    function sendTypingSignal() {
+      set(ref(db, "typing/" + currentChannel + "/" + username), true);
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(() => {
+        remove(ref(db, "typing/" + currentChannel + "/" + username));
+      }, 1500);
+    }
+
+    messageInput.addEventListener("input", () => {
+      sendTypingSignal();
+    });
+
+    onValue(ref(db, "typing/" + currentChannel), (snapshot) => {
+      const data = snapshot.val() || {};
+      const usersTyping = Object.keys(data).filter(u => u !== username);
+      if (usersTyping.length > 0) {
+        typingIndicator.style.display = "block";
+      } else {
+        typingIndicator.style.display = "none";
+      }
+    });
+
+    // Subscribe to messages for the channel
+    function subscribeMessages(channel) {
+      messagesRef = getMessagesRef(channel);
+      onChildAdded(messagesRef, (data) => {
+        const val = data.val();
+        messageDataMap.set(data.key, val);
+        const msgElem = createMessageElement(data.key, val);
+        chatBox.appendChild(msgElem);
         maybeScrollToBottom();
       });
-      onChildChanged(msgRef, s => {
-        const existing = chatBox.querySelector(`[data-id="${s.key}"]`);
-        if(existing) {
-          const newEl = createMessageElement(s.key,s.val());
-          chatBox.replaceChild(newEl,existing);
+      onChildChanged(messagesRef, (data) => {
+        const val = data.val();
+        messageDataMap.set(data.key, val);
+        const existing = chatBox.querySelector(`[data-id="${data.key}"]`);
+        if (existing) {
+          const newElem = createMessageElement(data.key, val);
+          chatBox.replaceChild(newElem, existing);
         }
       });
     }
+
     function unsubscribeMessages() {
-      chatBox.innerHTML="";
+      // Firebase v9 realtime database does not provide unsubscribe by default
+      // But we can clear chatBox and reset messageDataMap
+      messageDataMap.clear();
+      chatBox.innerHTML = "";
     }
-    subscribeMessages(currentChannel);
-    channelSelect.addEventListener("change", ()=>{
-      currentChannel = channelSelect.value;
-      localStorage.setItem("channel",currentChannel);
-      unsubscribeMessages();
-      subscribeMessages(currentChannel);
-    });
 
-    // --- Typing indicator ---
-    function sendTyping() {
-      set(ref(db,`typing/${currentChannel}/${username}`),true);
-      clearTimeout(window._typingTO);
-      window._typingTO = setTimeout(()=>remove(ref(db,`typing/${currentChannel}/${username}`)),1500);
-    }
-    messageInput.addEventListener("input", sendTyping);
-    onValue(ref(db,`typing/${currentChannel}`),s=>{
-      const t = s.val()||{};
-      const others = Object.keys(t).filter(u=>u!==username);
-      typingIndicator.style.display = others.length? "block":"none";
-    });
-
-    // --- Highlight user messages ---
-    let selectedUser = null;
-    userDropdown.addEventListener("change", ()=>{
-      selectedUser = userDropdown.value||null;
-      document.querySelectorAll(".message").forEach(m=>{
-        m.classList.toggle("highlighted-user", m.dataset.user===selectedUser);
-      });
-    });
-
-    function maybeScrollToBottom(){
-      if(chatBox.scrollTop+chatBox.clientHeight >= chatBox.scrollHeight-50){
+    // Auto scroll only if near bottom
+    function maybeScrollToBottom() {
+      const threshold = 50; // px
+      const atBottom = (chatBox.scrollTop + chatBox.clientHeight >= chatBox.scrollHeight - threshold);
+      if (atBottom) {
         chatBox.scrollTop = chatBox.scrollHeight;
       }
     }
 
-    // --- Sending ---
-    chatForm.addEventListener("submit",async e=>{
-      e.preventDefault();
-      const txt = messageInput.value.trim(); if(!txt) return;
-      await push(getMessagesRef(currentChannel),{ username, message: txt, timestamp: Date.now() });
-      messageInput.value="";
-      remove(ref(db,`typing/${currentChannel}/${username}`));
+    chatBox.addEventListener("scroll", () => {
+      // no special logic needed here, maybeScrollToBottom controls auto-scroll on new messages
     });
-    sendImageBtn.onclick = ()=>imageInput.click();
-    imageInput.onchange = ()=>{
-      const f = imageInput.files[0]; if(!f) return;
-      const r = new FileReader();
-      r.onload = async e=>{
-        await push(getMessagesRef(currentChannel),{
-          username, media: e.target.result, mediaType: f.type, timestamp: Date.now()
-        });
+
+    // Message send handler
+    chatForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const text = messageInput.value.trim();
+      if (text.length === 0) return;
+
+      const newMsg = {
+        username,
+        message: text,
+        timestamp: Date.now(),
       };
-      r.readAsDataURL(f);
-      imageInput.value="";
-    };
 
-    // --- Simple editing and reactions omitted for brevity ---
+      try {
+        await push(getMessagesRef(currentChannel), newMsg);
+        messageInput.value = "";
+      } catch (e) {
+        console.error("Error sending message:", e);
+      }
+    });
 
-    // --- CRT power button ---
-    powerButton.onclick = ()=>{
+    // Image/video/audio sending
+    sendImageBtn.addEventListener("click", () => {
+      imageInput.click();
+    });
+
+    imageInput.addEventListener("change", async () => {
+      const file = imageInput.files[0];
+      if (!file) return;
+      // For simplicity, convert small files to base64 (note: not ideal for large files)
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const base64 = e.target.result;
+        const newMsg = {
+          username,
+          media: base64,
+          mediaType: file.type,
+          timestamp: Date.now(),
+        };
+        try {
+          await push(getMessagesRef(currentChannel), newMsg);
+          imageInput.value = "";
+        } catch (e) {
+          console.error("Error sending media message:", e);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // --- MESSAGE EDITING ---
+    function enterEditMode(div, key, val) {
+      const contentSpan = div.querySelector(".msg-content");
+      const editBtn = div.querySelector(".edit-btn");
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.className = "edit-input";
+      input.value = val.message || "";
+
+      const saveBtn = document.createElement("button");
+      saveBtn.className = "save-btn";
+      saveBtn.textContent = "Save";
+
+      const cancelBtn = document.createElement("button");
+      cancelBtn.className = "cancel-btn";
+      cancelBtn.textContent = "Cancel";
+
+      div.replaceChild(input, contentSpan);
+      editBtn.style.display = "none";
+      div.appendChild(saveBtn);
+      div.appendChild(cancelBtn);
+
+      saveBtn.onclick = async () => {
+        const newMessage = input.value.trim();
+        if (newMessage.length === 0) {
+          alert("Message cannot be empty");
+          return;
+        }
+        try {
+          await update(ref(db, `channels/${currentChannel}/messages/${key}`), { message: newMessage });
+          // revert UI handled by onChildChanged listener
+        } catch (e) {
+          console.error("Error updating message:", e);
+        }
+      };
+
+      cancelBtn.onclick = () => {
+        div.replaceChild(contentSpan, input);
+        editBtn.style.display = "";
+        saveBtn.remove();
+        cancelBtn.remove();
+      };
+    }
+
+    // --- REACTIONS ---
+    async function toggleReaction(messageId, reaction) {
+      const reactionRef = ref(db, `channels/${currentChannel}/messages/${messageId}/reactions/${reaction}/${username}`);
+      onValue(reactionRef, (snap) => {}, { onlyOnce: true }).then((snap) => {
+        if (snap.exists()) {
+          remove(reactionRef);
+        } else {
+          set(reactionRef, true);
+        }
+      });
+    }
+
+    // --- ONLINE USERS LIST & HIGHLIGHT ---
+    let selectedUser = null;
+
+    function updateOnlineUsersList(users) {
+      // Clear dropdown except first option
+      userDropdown.innerHTML = '<option value="">-- Select User --</option>';
+      users.forEach(user => {
+        const option = document.createElement("option");
+        option.value = user;
+        option.textContent = user;
+        userDropdown.appendChild(option);
+      });
+    }
+
+    function highlightSelectedUserMessages() {
+      const messages = chatBox.querySelectorAll(".message");
+      messages.forEach(msg => {
+        if (selectedUser && msg.dataset.user === selectedUser) {
+          msg.classList.add("highlighted-user");
+        } else {
+          msg.classList.remove("highlighted-user");
+        }
+      });
+    }
+
+    userDropdown.addEventListener("change", () => {
+      selectedUser = userDropdown.value || null;
+      highlightSelectedUserMessages();
+    });
+
+    // Listen to users presence
+    const usersRef = ref(db, "users");
+    onValue(usersRef, (snapshot) => {
+      const data = snapshot.val() || {};
+      const onlineUsers = Object.keys(data);
+      userCount.textContent = `Users online: ${onlineUsers.length}`;
+      updateOnlineUsersList(onlineUsers);
+    });
+
+    // --- CRT LOGIN POWER BUTTON ---
+    powerButton.addEventListener("click", () => {
       loginOverlay.classList.add("faded");
-      setTimeout(()=> loginOverlay.style.display="none",2000);
-    };
+      setTimeout(() => {
+        loginOverlay.style.display = "none";
+      }, 2000);
+    });
+
+    // --- INIT ---
+    subscribeMessages(currentChannel);
+
   </script>
 </body>
 </html>
