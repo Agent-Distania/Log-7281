@@ -32,6 +32,13 @@
       animation: crtFlickerScreen 1.2s ease-in;
     }
 
+    /* New class for fading out overlay */
+    #crt-login.faded {
+      opacity: 0 !important;
+      pointer-events: none;
+      transition: opacity 2s ease;
+    }
+
     #crt-boot-text {
       font-size: 1.5em;
       text-shadow: 0 0 10px #0f0, 0 0 20px #0f0;
@@ -348,6 +355,8 @@
     const changeUsernameBtn = document.getElementById("change-username");
     const channelSelect = document.getElementById("channel-select");
     const typingIndicator = document.getElementById("typing-indicator");
+    const loginOverlay = document.getElementById("crt-login");
+    const powerButton = document.getElementById("power-button");
 
     let username = localStorage.getItem("username") || prompt("Enter your username:");
     if (!username) username = "Anonymous";
@@ -510,87 +519,70 @@
       clearMessages();
       messagesRef = getMessagesRef(channel);
 
-      onChildAdded(messagesRef, (data) => {
-        const val = data.val();
-        const key = data.key;
-        const div = createMessageElement(key, val);
-        chatBox.appendChild(div);
-        scrollIfNearBottom();
+      onChildAdded(messagesRef, (snapshot) => {
+        const val = snapshot.val();
+        const key = snapshot.key;
+        const msgElem = createMessageElement(key, val);
+        chatBox.appendChild(msgElem);
+        // Auto scroll if near bottom
+        if (chatBox.scrollTop + chatBox.clientHeight >= chatBox.scrollHeight - 50) {
+          chatBox.scrollTop = chatBox.scrollHeight;
+        }
+        highlightSelectedUserMessages();
       });
 
-      onChildChanged(messagesRef, (data) => {
-        const key = data.key;
-        const val = data.val();
-        const msgDiv = chatBox.querySelector(`div.message[data-id='${key}']`);
-        if (msgDiv) {
-          const newDiv = createMessageElement(key, val);
-          chatBox.replaceChild(newDiv, msgDiv);
+      onChildChanged(messagesRef, (snapshot) => {
+        const key = snapshot.key;
+        const val = snapshot.val();
+        const existingMsg = chatBox.querySelector(`.message[data-id="${key}"]`);
+        if (existingMsg) {
+          const newMsgElem = createMessageElement(key, val);
+          chatBox.replaceChild(newMsgElem, existingMsg);
+          highlightSelectedUserMessages();
         }
       });
     }
 
-    function scrollIfNearBottom() {
-      const nearBottom = chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight < 100;
-      if (nearBottom) chatBox.scrollTop = chatBox.scrollHeight;
+    // USER COUNT
+    const usersRef = ref(db, "users");
+
+    function updateUserCount(usersObj) {
+      const count = usersObj ? Object.keys(usersObj).length : 0;
+      userCount.textContent = `Users online: ${count}`;
+      updateOnlineUsersDropdown(usersObj);
     }
 
-    startListeningToChannel(currentChannel);
+    function updateOnlineUsersDropdown(usersObj) {
+      userDropdown.innerHTML = '<option value="">-- Select User --</option>';
+      if (!usersObj) return;
+      for (const userId of Object.keys(usersObj)) {
+        const option = document.createElement("option");
+        option.value = userId;
+        option.textContent = userId;
+        userDropdown.appendChild(option);
+      }
+    }
 
-    channelSelect.addEventListener("change", () => {
-      currentChannel = channelSelect.value;
-      localStorage.setItem("channel", currentChannel);
-      startListeningToChannel(currentChannel);
+    onValue(usersRef, (snapshot) => {
+      updateUserCount(snapshot.val());
     });
 
-    const connectionsRef = ref(db, "connections");
-    const userRef = push(connectionsRef);
-    set(userRef, username);
+    // Add current user to online users list
+    const userRef = ref(db, `users/${username}`);
+    set(userRef, true);
     onDisconnect(userRef).remove();
 
-    onValue(connectionsRef, (snapshot) => {
-      const users = snapshot.val() || {};
-      userCount.innerText = `Users online: ${Object.keys(users).length}`;
-      userDropdown.innerHTML = `<option value="">-- Select User --</option>`;
-      for (const id in users) {
-        const user = users[id];
-        const opt = document.createElement("option");
-        opt.value = user;
-        opt.innerText = user;
-        userDropdown.appendChild(opt);
-      }
-    });
-
-    userDropdown.addEventListener("change", () => {
-      const selectedUser = userDropdown.value;
-      document.querySelectorAll(".message").forEach(msg => {
-        if (msg.dataset.user === selectedUser && selectedUser !== "") {
-          msg.classList.add("highlighted-user");
-        } else {
-          msg.classList.remove("highlighted-user");
-        }
-      });
-    });
-
-    // Typing indicator logic
-    let typingTimeout;
-    const typingRef = ref(db, `channels/${currentChannel}/typing/${username}`);
-
-    messageInput.addEventListener("input", () => {
-      set(typingRef, true);
-      clearTimeout(typingTimeout);
-      typingTimeout = setTimeout(() => {
-        set(typingRef, null);
-      }, 1500);
-    });
+    // Typing indicator
+    let typingRef = ref(db, `channels/${currentChannel}/typing/${username}`);
+    let typingUsersRef = ref(db, `channels/${currentChannel}/typing`);
 
     function listenForTyping(channel) {
-      const typingChannelRef = ref(db, `channels/${channel}/typing`);
-      onValue(typingChannelRef, (snapshot) => {
+      typingUsersRef = ref(db, `channels/${channel}/typing`);
+      onValue(typingUsersRef, (snapshot) => {
         const typingUsers = snapshot.val() || {};
-        const othersTyping = Object.keys(typingUsers).filter(u => u !== username);
-        if (othersTyping.length > 0) {
+        delete typingUsers[username]; // exclude self
+        if (Object.keys(typingUsers).length > 0) {
           typingIndicator.style.display = "block";
-          typingIndicator.textContent = `${othersTyping.join(", ")} is typing...`;
         } else {
           typingIndicator.style.display = "none";
         }
@@ -599,24 +591,26 @@
 
     listenForTyping(currentChannel);
 
-    channelSelect.addEventListener("change", () => {
-      set(typingRef, null);
-      listenForTyping(channelSelect.value);
+    messageInput.addEventListener("input", () => {
+      set(typingRef, messageInput.value !== "" ? username : null);
+      setTimeout(() => set(typingRef, null), 3000);
     });
 
-    chatForm.addEventListener("submit", (e) => {
+    chatForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       const text = messageInput.value.trim();
-      if (text === "") return;
-      push(messagesRef, {
+      if (!text) return;
+
+      await push(messagesRef, {
         username,
         message: text,
-        timestamp: Date.now(),
+        timestamp: Date.now()
       });
       messageInput.value = "";
       set(typingRef, null);
     });
 
+    // Handle image/video/audio upload
     sendImageBtn.addEventListener("click", () => {
       imageInput.click();
     });
@@ -624,31 +618,64 @@
     imageInput.addEventListener("change", async () => {
       const file = imageInput.files[0];
       if (!file) return;
+
       const reader = new FileReader();
-      reader.onload = () => {
-        push(messagesRef, {
+      reader.onload = async function(evt) {
+        await push(messagesRef, {
           username,
-          media: reader.result,
+          media: evt.target.result,
           mediaType: file.type,
-          timestamp: Date.now(),
+          timestamp: Date.now()
         });
       };
       reader.readAsDataURL(file);
       imageInput.value = "";
     });
 
-    // CRT LOGIN ANIMATION LOGIC
-    const loginOverlay = document.getElementById("crt-login");
-    const powerButton = document.getElementById("power-button");
+    // Highlight messages by selected user
+    function highlightSelectedUserMessages() {
+      const selectedUser = userDropdown.value;
+      const messages = chatBox.querySelectorAll(".message");
+      messages.forEach((msg) => {
+        if (selectedUser && msg.dataset.user === selectedUser) {
+          msg.classList.add("highlighted-user");
+        } else {
+          msg.classList.remove("highlighted-user");
+        }
+      });
+    }
 
+    userDropdown.addEventListener("change", () => {
+      highlightSelectedUserMessages();
+    });
+
+    // Channel change with combined listener and fixes
+    channelSelect.addEventListener("change", () => {
+      currentChannel = channelSelect.value;
+      localStorage.setItem("channel", currentChannel);
+
+      set(typingRef, null);
+
+      // Update messagesRef and listen for new channel messages
+      startListeningToChannel(currentChannel);
+
+      // Update typing refs and listener
+      typingRef = ref(db, `channels/${currentChannel}/typing/${username}`);
+      listenForTyping(currentChannel);
+
+      highlightSelectedUserMessages();
+    });
+
+    // Start listening to initial channel
+    startListeningToChannel(currentChannel);
+
+    // CRT login power button fade out
     powerButton.addEventListener("click", () => {
       document.getElementById("crt-boot-text").textContent = "SYSTEM ONLINE...";
+      loginOverlay.classList.add("faded");
       setTimeout(() => {
-        loginOverlay.style.opacity = "0";
-        setTimeout(() => {
-          loginOverlay.style.display = "none";
-        }, 2000);
-      }, 1500);
+        loginOverlay.style.display = "none";
+      }, 2000);
     });
   </script>
 </body>
