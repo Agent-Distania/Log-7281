@@ -60,6 +60,12 @@ body {
   padding-top: 0;
 }
 
+/* Add space below the Change Username button */
+#change-username {
+  margin-bottom: 10px;
+  display: inline-block; /* ensures margin works properly */
+}
+
 /* Form Inputs */
 #chat-form {
   display: flex;
