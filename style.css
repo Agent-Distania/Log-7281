@@ -11,6 +11,13 @@ body {
   box-sizing: border-box;
 }
 
+body, html {
+  margin: 0; padding: 0; height: 100%;
+  background: black;
+  position: relative;
+  overflow: hidden;
+}
+
 /* Apply box-sizing to all elements for consistent sizing */
 *, *::before, *::after {
   box-sizing: inherit;
