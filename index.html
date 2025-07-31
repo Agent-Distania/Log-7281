@@ -575,22 +575,6 @@
       }
     }
 
-    // Reactions
-    const reactionTypes = ["👍", "❤️", "😂", "😮", "😢", "😡"];
-
-    function toggleReaction(messageKey, reaction) {
-      const reactionRef = ref(db, `channels/${currentChannel}/messages/${messageKey}/reactions/${reaction}/${username}`);
-      onValue(reactionRef, (snap) => {}, {onlyOnce: true});
-      // Using update/removal based on existing reaction
-      get(reactionRef).then(snap => {
-        if (snap.exists()) {
-          remove(reactionRef);
-        } else {
-          set(reactionRef, true);
-        }
-      });
-    }
-
     // Subscribe to messages for the current channel
     function subscribeMessages(channel) {
       messagesRef = getMessagesRef(channel);
