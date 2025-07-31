@@ -689,6 +689,23 @@
     }
     setUserPresence(username);
 
+    // Typing indicator (simplified)
+    let typingTimeout;
+    messageInput.addEventListener("input", () => {
+      set(ref(db, `typing/${currentChannel}/${username}`), true);
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(() => {
+        remove(ref(db, `typing/${currentChannel}/${username}`));
+      }, 2000);
+    });
+
+    const typingRef = ref(db, `typing/${currentChannel}`);
+    onValue(typingRef, (snap) => {
+      const typingUsers = snap.val() || {};
+      const othersTyping = Object.keys(typingUsers).filter(u => u !== username);
+      typingIndicator.style.display = othersTyping.length > 0 ? "block" : "none";
+    });
+
     // Listen to channel changes for typing indicator and user presence
     channelSelect.addEventListener("change", () => {
       setUserPresence(username);
@@ -705,6 +722,8 @@
       }, 2000);
     });
 
+
   </script>
+<div id="crt-scanlines"></div>
 </body>
 </html>
