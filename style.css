@@ -407,3 +407,16 @@ select {
   80% { opacity: 1; }
   100% { opacity: 1; }
 }
+
+/* === Disable CRT scanline overlays === */
+#chat-container::before {
+  display: none !important;
+}
+
+#crt-scanlines {
+  display: none !important;
+}
+
+/* Remove glitch/scanline animations if you want to fully disable */
+@keyframes chatGlitch { }
+@keyframes glitchLines { }
