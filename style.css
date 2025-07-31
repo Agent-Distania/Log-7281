@@ -39,22 +39,42 @@ body {
   position: relative; /* Required for ::before overlay */
 }
 
-/* Optional: Scanline wipe overlay for power-on */
+/* Optional: Scanline wipe overlay for power-on / persistent CRT look */
 #chat-container::before {
   content: "";
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
   background: repeating-linear-gradient(
     to bottom,
-    rgba(0, 255, 0, 0.05) 0,
-    rgba(0, 255, 0, 0.05) 1px,
+    rgba(0, 255, 0, 0.1) 0,
+    rgba(0, 255, 0, 0.1) 1px,
     transparent 1px,
-    transparent 3px
+    transparent 4px
   );
   pointer-events: none;
-  animation: scanlineWipe 1.5s ease forwards;
+  animation: scanlineWipe 1.5s ease forwards, chatGlitch 3s infinite linear;
   z-index: 10;
 }
+
+/* subtle internal jitter to echo the global scanline movement */
+@keyframes chatGlitch {
+  0% {
+    background-position: 0 0;
+    transform: translateY(0);
+    opacity: 0.85;
+  }
+  50% {
+    background-position: 0 2px;
+    transform: translateY(0.5px);
+    opacity: 1;
+  }
+  100% {
+    background-position: 0 0;
+    transform: translateY(0);
+    opacity: 0.85;
+  }
+}
+
 
 /* Subtle Glitch Line Overlay */
 #chat-bg {
@@ -406,13 +426,22 @@ select {
     transparent 4px
   );
   animation: crtScanlineMove 1s linear infinite;
-  /* show it directly instead of blending over black */
-  mix-blend-mode: normal; /* or remove this line entirely */
+  mix-blend-mode: normal; /* Overlay on black would be invisible */
 }
 
 @keyframes crtScanlineMove {
-  0%   { background-position: 0 0; }
-  100% { background-position: 0 2px; }
+  0% {
+    background-position: 0 0;
+    transform: translateY(0);
+  }
+  50% {
+    background-position: 0 2px;
+    transform: translateY(1px);
+  }
+  100% {
+    background-position: 0 0;
+    transform: translateY(0);
+  }
 }
 
 
