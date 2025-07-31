@@ -400,13 +400,14 @@ select {
   pointer-events: none;
   background: repeating-linear-gradient(
     to bottom,
-    rgba(0, 255, 0, 0.2),
-    rgba(0, 255, 0, 0.2) 1px,
+    rgba(0, 255, 0, 0.25) 0,
+    rgba(0, 255, 0, 0.25) 1px,
     transparent 1px,
-    transparent 3px
+    transparent 4px
   );
   animation: crtScanlineMove 1s linear infinite;
-  mix-blend-mode: overlay;
+  /* show it directly instead of blending over black */
+  mix-blend-mode: normal; /* or remove this line entirely */
 }
 
 @keyframes crtScanlineMove {
