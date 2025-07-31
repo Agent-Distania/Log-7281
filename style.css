@@ -16,6 +16,40 @@ body {
   box-sizing: inherit;
 }
 
+/* Blinking Cursor Effect */
+.blinking-cursor::after {
+  content: "_";
+  animation: blink 1s step-start infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Scanlines Overlay */
+#scanlines {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9998;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 255, 0, 0.03) 0px,
+    rgba(0, 255, 0, 0.03) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  animation: scanlinesMove 1s linear infinite;
+}
+
+@keyframes scanlinesMove {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 2px; }
+}
+
 #chat-container {
   display: flex;
   flex-direction: column;
@@ -26,10 +60,8 @@ body {
   font-size: 14px;
   line-height: 1.4em;
   overflow: hidden;
-
-  /* Power On Animation */
   animation: powerOn 1.5s ease forwards;
-  position: relative; /* Required for ::before overlay */
+  position: relative;
 }
 
 /* Optional: Scanline wipe overlay for power-on */
@@ -54,19 +86,18 @@ body {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
   pointer-events: none;
-  background:
-    repeating-linear-gradient(
-      to bottom,
-      rgba(0, 255, 0, 0.08) 0,
-      rgba(0, 255, 0, 0.08) 1px,
-      transparent 1px,
-      transparent 3px
-    );
-  background-position: 0 1px; /* offset by 1px for no alignment overlap */
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 255, 0, 0.08) 0,
+    rgba(0, 255, 0, 0.08) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  background-position: 0 1px;
   animation: glitchLines 1s infinite linear;
   z-index: 0;
-  filter: none; /* removed drop shadow */
-  mix-blend-mode: normal; /* removed screen blend */
+  filter: none;
+  mix-blend-mode: normal;
 }
 
 #chat-box {
@@ -75,28 +106,24 @@ body {
   color: #0f0;
   font-family: monospace;
   box-sizing: border-box;
-
-  /* ✅ Fixed logic */
-  height: auto;              /* Grow with content */
-  max-height: 400px;         /* Limit height */
-  overflow-y: auto;          /* Scroll only when needed */
-  flex-shrink: 0;            /* Prevent stretching */
+  height: auto;
+  max-height: 400px;
+  overflow-y: auto;
+  flex-shrink: 0;
 }
 
 #chat-box div {
   line-height: 1.2;
-  margin: 0; /* remove margins */
-  padding: 0; /* remove padding */
+  margin: 0;
+  padding: 0;
 }
 
-/* Highlight selected user's messages */
 .highlighted-user {
   background-color: rgba(0, 255, 0, 0.1);
   border-left: 3px solid #0f0;
-  padding-left: 7px; /* Add some padding so text doesn't stick to border */
+  padding-left: 7px;
 }
 
-/* CRT Style Scrollbar */
 #chat-box::-webkit-scrollbar {
   width: 10px;
 }
@@ -112,10 +139,7 @@ body {
   background: #0d0;
 }
 
-/* ========================= */
-/*     Typing Indicator      */
-/* ========================= */
-/* ✅ Keep the typing indicator below chat content */
+/* Typing Indicator */
 .typing-indicator {
   padding: 4px 10px;
   font-style: italic;
@@ -130,7 +154,6 @@ body {
   50% { opacity: 0.2; }
 }
 
-/* Glitch Animation */
 @keyframes glitchLines {
   0%, 100% {
     background-position: 0 0;
@@ -142,7 +165,6 @@ body {
   }
 }
 
-/* Power On Animation Keyframes */
 @keyframes powerOn {
   0% {
     opacity: 0;
@@ -167,7 +189,6 @@ body {
   }
 }
 
-/* Scanline Wipe Animation */
 @keyframes scanlineWipe {
   0% {
     clip-path: inset(100% 0 0 0);
@@ -177,17 +198,12 @@ body {
   }
 }
 
-/* ========================= */
-/*   Form and Input Fields   */
-/* ========================= */
-
-/* Chat Form Layout */
+/* Chat Form */
 #chat-form {
   display: flex;
   gap: 10px;
 }
 
-/* CRT Input Box */
 #chat-form input {
   font-family: monospace;
   background-color: #000;
@@ -201,13 +217,11 @@ body {
   box-sizing: border-box;
 }
 
-/* Placeholder with better visibility */
 #chat-form input::placeholder {
   color: rgba(0, 255, 0, 0.3);
   font-style: italic;
 }
 
-/* Input focus glow */
 #chat-form input:focus {
   outline: none;
   box-shadow:
@@ -215,7 +229,6 @@ body {
     0 0 15px #0f0;
 }
 
-/* Media Styling */
 img.chat-image,
 video.chat-video,
 audio.chat-audio {
@@ -224,11 +237,7 @@ audio.chat-audio {
   margin-top: 5px;
 }
 
-/* ========================= */
-/*  CRT Buttons and Selects  */
-/* ========================= */
-
-/* General CRT Button Styles */
+/* Buttons and Selects */
 button, .edit-btn, .save-btn, .cancel-btn, #change-username, #sendImage {
   font-family: monospace;
   font-size: 1em;
@@ -243,19 +252,15 @@ button, .edit-btn, .save-btn, .cancel-btn, #change-username, #sendImage {
     0 0 20px #0f0;
   user-select: none;
   transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-  -webkit-appearance: none;
-  -moz-appearance: none;
   appearance: none;
   box-sizing: border-box;
 }
 
-/* Add spacing between username and channel select */
 #change-username {
   margin-bottom: 10px;
   display: inline-block;
 }
 
-/* Button Focus */
 button:focus, .edit-btn:focus, .save-btn:focus, .cancel-btn:focus, #change-username:focus, #sendImage:focus {
   outline: none;
   box-shadow:
@@ -264,7 +269,6 @@ button:focus, .edit-btn:focus, .save-btn:focus, .cancel-btn:focus, #change-usern
     0 0 20px #0f0;
 }
 
-/* Button Hover */
 button:hover, .edit-btn:hover, .save-btn:hover, .cancel-btn:hover, #change-username:hover, #sendImage:hover {
   background-color: #0f0;
   color: black;
@@ -272,7 +276,6 @@ button:hover, .edit-btn:hover, .save-btn:hover, .cancel-btn:hover, #change-usern
   text-shadow: none;
 }
 
-/* CRT Select Dropdowns */
 select, #channel-select, #online-users-dropdown {
   font-family: monospace;
   font-size: 1em;
@@ -287,13 +290,10 @@ select, #channel-select, #online-users-dropdown {
     0 0 10px #0f0,
     0 0 20px #0f0;
   transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-  -webkit-appearance: none;
-  -moz-appearance: none;
   appearance: none;
   box-sizing: border-box;
 }
 
-/* Select Focus */
 select:focus, #channel-select:focus, #online-users-dropdown:focus {
   outline: none;
   box-shadow:
@@ -302,7 +302,6 @@ select:focus, #channel-select:focus, #online-users-dropdown:focus {
     0 0 20px #0f0;
 }
 
-/* Select Hover */
 select:hover, #channel-select:hover, #online-users-dropdown:hover {
   background-color: #0f0;
   color: black;
@@ -310,7 +309,6 @@ select:hover, #channel-select:hover, #online-users-dropdown:hover {
   text-shadow: none;
 }
 
-/* CRT Dropdown Arrow */
 select::-ms-expand {
   display: none;
 }
