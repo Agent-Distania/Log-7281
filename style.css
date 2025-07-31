@@ -39,42 +39,22 @@ body {
   position: relative; /* Required for ::before overlay */
 }
 
-/* Optional: Scanline wipe overlay for power-on / persistent CRT look */
+/* Optional: Scanline wipe overlay for power-on */
 #chat-container::before {
   content: "";
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
   background: repeating-linear-gradient(
     to bottom,
-    rgba(0, 255, 0, 0.1) 0,
-    rgba(0, 255, 0, 0.1) 1px,
+    rgba(0, 255, 0, 0.05) 0,
+    rgba(0, 255, 0, 0.05) 1px,
     transparent 1px,
-    transparent 4px
+    transparent 3px
   );
   pointer-events: none;
-  animation: scanlineWipe 1.5s ease forwards, chatGlitch 3s infinite linear;
+  animation: scanlineWipe 1.5s ease forwards;
   z-index: 10;
 }
-
-/* subtle internal jitter to echo the global scanline movement */
-@keyframes chatGlitch {
-  0% {
-    background-position: 0 0;
-    transform: translateY(0);
-    opacity: 0.85;
-  }
-  50% {
-    background-position: 0 2px;
-    transform: translateY(0.5px);
-    opacity: 1;
-  }
-  100% {
-    background-position: 0 0;
-    transform: translateY(0);
-    opacity: 0.85;
-  }
-}
-
 
 /* Subtle Glitch Line Overlay */
 #chat-bg {
@@ -407,16 +387,3 @@ select {
   80% { opacity: 1; }
   100% { opacity: 1; }
 }
-
-/* === Disable CRT scanline overlays === */
-#chat-container::before {
-  display: none !important;
-}
-
-#crt-scanlines {
-  display: none !important;
-}
-
-/* Remove glitch/scanline animations if you want to fully disable */
-@keyframes chatGlitch { }
-@keyframes glitchLines { }
