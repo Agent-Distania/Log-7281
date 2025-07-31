@@ -380,3 +380,29 @@ select {
   80% { opacity: 1; }
   100% { opacity: 1; }
 }
+
+/* ========================= */
+/*     CRT Scanline Overlay  */
+/* ========================= */
+#crt-scanlines {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9998;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 255, 0, 0.03),
+    rgba(0, 255, 0, 0.03) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  animation: crtScanlineMove 1s linear infinite;
+  mix-blend-mode: overlay;
+}
+
+@keyframes crtScanlineMove {
+  0%   { background-position: 0 0; }
+  100% { background-position: 0 2px; }
+}
